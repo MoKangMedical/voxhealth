@@ -1,334 +1,251 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoxHealth 🔊 — 语音健康检测</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0a0a0f; color: #e5e5e5; }
-        .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(12px); }
-        .pulse-ring { animation: pulse-ring 1.5s cubic-bezier(0.215,0.61,0.355,1) infinite; }
-        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
-        .recording-btn { animation: pulse-glow 1.5s ease-in-out infinite; }
-        @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px rgba(239,68,68,0.3); } 50% { box-shadow: 0 0 40px rgba(239,68,68,0.6); } }
-        .risk-high { color: #ef4444; }
-        .risk-medium { color: #f59e0b; }
-        .risk-low { color: #22c55e; }
-        .risk-bar { height: 6px; border-radius: 3px; background: #1a1a25; overflow: hidden; }
-        .risk-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-        .fade-in { animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        .waveform-canvas { width: 100%; height: 80px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>VoxHealth</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);--text:#e5e5e5;--dim:#888;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--blue:#3b82f6}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden}
+.page{display:none;padding:16px;min-height:100vh}.page.active{display:block}
+.header{text-align:center;padding:24px 0 16px}.header h1{font-size:28px;font-weight:700}.header p{color:var(--dim);font-size:13px;margin-top:4px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:active{opacity:.8}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}
+.record-btn{width:80px;height:80px;border-radius:50%;border:3px solid var(--red);background:transparent;display:flex;align-items:center;justify-content:center;margin:20px auto;transition:all .3s}
+.record-btn .dot{width:28px;height:28px;border-radius:50%;background:var(--red);transition:all .3s}
+.record-btn.recording{border-color:#fff;animation:pulse 1.5s infinite}
+.record-btn.recording .dot{border-radius:4px;width:24px;height:24px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
+.timer{font-size:32px;font-weight:300;font-family:monospace;text-align:center;margin:12px 0;color:var(--dim)}
+.wave-bar{width:100%;height:64px;background:rgba(0,0,0,.3);border-radius:12px;overflow:hidden;display:flex;align-items:end;gap:2px;padding:4px}
+.wave-bar span{flex:1;background:var(--blue);border-radius:2px;min-height:2px;transition:height .05s}
+.score-circle{width:100px;height:100px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 12px;border:3px solid}
+.score-circle.good{border-color:var(--green)}.score-circle.warn{border-color:var(--yellow)}.score-circle.bad{border-color:var(--red)}
+.score-circle .num{font-size:32px;font-weight:700}.score-circle .label{font-size:10px;color:var(--dim)}
+.tag{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;margin:2px}
+.tag-high{background:rgba(239,68,68,.15);color:var(--red)}
+.tag-mid{background:rgba(234,179,8,.15);color:var(--yellow)}
+.tag-low{background:rgba(34,197,94,.15);color:var(--green)}
+.bar{height:4px;border-radius:2px;background:rgba(255,255,255,.06);margin:6px 0}.bar-fill{height:100%;border-radius:2px;transition:width .6s}
+.bar-fill.high{background:var(--red)}.bar-fill.mid{background:var(--yellow)}.bar-fill.low{background:var(--green)}
+.disease-card{padding:12px;border-bottom:1px solid var(--border)}.disease-card:last-child{border:none}
+.disease-name{font-weight:600;font-size:14px}.disease-score{font-size:20px;font-weight:700}
+.disease-cat{font-size:11px;color:var(--dim)}
+.marker{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(255,255,255,.05);color:var(--dim);margin:1px}
+.rec-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.feat-item{background:rgba(0,0,0,.2);border-radius:8px;padding:8px}.feat-item .k{font-size:10px;color:var(--dim)}.feat-item .v{font-size:13px;font-family:monospace}
+.tabs{display:flex;gap:8px;margin:12px 0;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+.tab{padding:6px 12px;border-radius:8px;font-size:12px;background:rgba(255,255,255,.05);color:var(--dim);cursor:pointer;border:none;flex-shrink:0}
+.tab.active{background:var(--blue);color:#fff}
+.loading{text-align:center;padding:40px}.loading .dots{display:flex;justify-content:center;gap:4px;margin-top:12px}
+.loading .dots span{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:bounce .6s infinite alternate}
+.loading .dots span:nth-child(2){animation-delay:.2s}.loading .dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{to{opacity:.3;transform:translateY(-8px)}}
+.text-sm{font-size:12px}.text-xs{font-size:11px;color:var(--dim)}.text-center{text-align:center}.mt-8{margin-top:8px}.mb-12{margin-bottom:12px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(10,10,15,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;padding:8px 0 env(safe-area-inset-bottom);z-index:100}
+.nav-item{flex:1;text-align:center;padding:4px 0;font-size:10px;color:var(--dim);cursor:pointer;transition:color .2s}
+.nav-item.active{color:var(--blue)}.nav-item .icon{font-size:20px;margin-bottom:2px}
+.pb-80{padding-bottom:80px}
+.trend-chart{width:100%;height:200px;position:relative}
+.trend-line{fill:none;stroke:var(--blue);stroke-width:2}
+.trend-dot{fill:var(--blue)}
+.hidden{display:none!important}
+</style>
 </head>
-<body class="min-h-screen">
-    <div class="max-w-2xl mx-auto px-4 py-12">
+<body>
+<!-- 登录页 -->
+<div id="page-login" class="page active">
+<div class="header"><h1>VoxHealth</h1><p>30秒语音 · 健康早筛</p></div>
+<div class="card" style="margin-top:40px">
+<p class="text-sm mb-12" style="text-align:center">输入手机号开始使用</p>
+<input id="phone-input" type="tel" placeholder="手机号" style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.3);color:#fff;font-size:16px;margin-bottom:12px">
+<button class="btn btn-primary" onclick="doLogin()">开始使用</button>
+</div>
+<p class="text-xs text-center" style="margin-top:20px">隐私优先 · 音频分析后即删</p>
+</div>
 
-        <!-- 头部 -->
-        <header class="text-center mb-12">
-            <h1 class="text-4xl font-bold mb-2">🔊 VoxHealth</h1>
-            <p class="text-gray-500">30秒语音 · 25种疾病早筛 · 非侵入·低延迟</p>
-        </header>
+<!-- 首页 -->
+<div id="page-home" class="page">
+<div class="header"><h1>VoxHealth</h1><p>你好，<span id="user-name">用户</span></p></div>
+<div class="card text-center" style="padding:24px">
+<p class="text-sm" style="margin-bottom:12px">点击开始30秒语音健康检测</p>
+<button class="btn btn-primary mt-8" onclick="startRecord()">🎤 开始检测</button>
+</div>
+<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">📊 最近检测</p><div id="recent-list"><p class="text-xs">暂无记录</p></div></div>
+</div>
 
-        <!-- 录音区 -->
-        <div id="record-section" class="glass rounded-2xl p-8 text-center mb-8">
-            <div id="waveform-container" class="mb-6">
-                <canvas id="waveform" class="waveform-canvas rounded-lg bg-black/30"></canvas>
-            </div>
+<!-- 录音页 -->
+<div id="page-record" class="page">
+<div class="header"><h1>🎤 语音检测</h1><p>请自然说话30秒</p></div>
+<div class="timer" id="timer">00:30</div>
+<button class="record-btn" id="record-btn" onclick="toggleRecord()"><div class="dot"></div></button>
+<p class="text-xs text-center mt-8">支持中文/英文/任何语言</p>
+</div>
 
-            <div id="record-status" class="text-gray-500 text-sm mb-6">点击按钮开始录制30秒语音</div>
-            <div id="timer" class="text-3xl font-mono text-gray-300 mb-6 hidden">00:30</div>
+<!-- 分析中 -->
+<div id="page-loading" class="page">
+<div class="loading" style="padding-top:100px">
+<div style="font-size:48px;margin-bottom:16px">🧠</div>
+<p>AI正在分析你的语音...</p>
+<div class="dots"><span></span><span></span><span></span></div>
+</div>
+</div>
 
-            <button id="record-btn" onclick="toggleRecording()" class="w-20 h-20 rounded-full bg-gray-700 hover:bg-gray-600 transition-all flex items-center justify-center mx-auto">
-                <div id="record-icon" class="w-6 h-6 rounded-full bg-red-500"></div>
-            </button>
+<!-- 报告页 -->
+<div id="page-report" class="page pb-80">
+<div class="header"><h1>📋 健康报告</h1><p id="report-time"></p></div>
+<div class="card text-center" id="report-summary"></div>
+<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">🎙️ 声学特征</p><div class="feat-grid" id="feat-grid"></div></div>
+<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">🤖 AI健康解读</p><p id="ai-insight" class="text-sm" style="line-height:1.6"></p></div>
+<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">🏥 疾病风险筛查</p><div class="tabs" id="disease-tabs"></div><div id="disease-list"></div></div>
+<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">💡 建议</p><div id="rec-list"></div></div>
+<div style="padding:16px"><button class="btn btn-outline" onclick="showPage('page-home')">返回首页</button></div>
+</div>
 
-            <p class="text-xs text-gray-600 mt-4">请自然说话，无需特殊准备。支持中文/英文/任何语言。</p>
-        </div>
+<!-- 历史页 -->
+<div id="page-history" class="page pb-80">
+<div class="header"><h1>📊 检测历史</h1><p>查看所有记录</p></div>
+<div id="history-list"></div>
+</div>
 
-        <!-- 加载状态 -->
-        <div id="loading" class="hidden glass rounded-2xl p-12 text-center mb-8">
-            <div class="text-4xl mb-4">🧠</div>
-            <p class="text-gray-400">AI正在分析你的语音特征...</p>
-            <div class="mt-4 flex justify-center gap-1">
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay:0s"></span>
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay:0.1s"></span>
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay:0.2s"></span>
-            </div>
-        </div>
+<!-- 我的页 -->
+<div id="page-profile" class="page pb-80">
+<div class="header"><h1>👤 我的</h1></div>
+<div class="card">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+<div style="width:48px;height:48px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:20px">👤</div>
+<div><p id="profile-name" style="font-weight:600"></p><p id="profile-phone" class="text-xs"></p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+<div><p id="stat-total" style="font-size:24px;font-weight:700">0</p><p class="text-xs">检测次数</p></div>
+<div><p id="stat-avg" style="font-size:24px;font-weight:700">-</p><p class="text-xs">平均分</p></div>
+<div><p id="stat-last" style="font-size:24px;font-weight:700">-</p><p class="text-xs">上次检测</p></div>
+</div>
+</div>
+<div class="card"><button class="btn btn-outline" onclick="logout()">退出登录</button></div>
+</div>
 
-        <!-- 报告区 -->
-        <div id="report-section" class="hidden">
-            <!-- 总评 -->
-            <div class="glass rounded-2xl p-6 mb-6 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold">📊 健康评估总览</h2>
-                    <span id="report-id" class="text-xs text-gray-600"></span>
-                </div>
-                <div class="flex items-center gap-6">
-                    <div class="text-center">
-                        <div id="overall-score" class="text-5xl font-bold text-green-400">--</div>
-                        <div class="text-xs text-gray-500 mt-1">综合评分</div>
-                    </div>
-                    <div class="flex-1">
-                        <div id="overall-level" class="text-lg font-semibold text-green-400 mb-1">--</div>
-                        <div id="recording-quality" class="text-xs text-gray-500"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 声学特征 -->
-            <div class="glass rounded-2xl p-6 mb-6 fade-in">
-                <h3 class="text-sm font-semibold text-gray-400 mb-4">🎙️ 关键声学特征</h3>
-                <div id="feature-grid" class="grid grid-cols-2 gap-3 text-sm"></div>
-            </div>
-
-            <!-- 疾病风险 -->
-            <div class="glass rounded-2xl p-6 mb-6 fade-in">
-                <h3 class="text-sm font-semibold text-gray-400 mb-4">🏥 疾病风险筛查</h3>
-                <div id="disease-tabs" class="flex gap-2 mb-4 flex-wrap"></div>
-                <div id="disease-list" class="space-y-3"></div>
-            </div>
-
-            <!-- 建议 -->
-            <div class="glass rounded-2xl p-6 mb-6 fade-in">
-                <h3 class="text-sm font-semibold text-gray-400 mb-4">💡 建议</h3>
-                <div id="recommendations" class="space-y-2 text-sm text-gray-300"></div>
-            </div>
-
-            <div class="text-center">
-                <button onclick="resetAll()" class="text-xs text-gray-600 hover:text-gray-400 transition">🔄 重新检测</button>
-            </div>
-        </div>
-
-        <footer class="text-center mt-12 text-xs text-gray-700">
-            VoxHealth v0.1 · 仅供参考，不构成医疗诊断 · 音频分析后即删
-        </footer>
-    </div>
-
+<!-- 底部导航 -->
+<div class="nav" id="bottom-nav" style="display:none">
+<div class="nav-item active" onclick="navTo('home')"><div class="icon">🏠</div>首页</div>
+<div class="nav-item" onclick="navTo('history')"><div class="icon">📊</div>历史</div>
+<div class="nav-item" onclick="navTo('profile')"><div class="icon">👤</div>我的</div>
+</div>
 <script>
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let isRecording = false;
-    let timerInterval = null;
-    let timeLeft = 30;
-    let audioContext = null;
-    let analyser = null;
-    let animFrame = null;
+let userId=localStorage.getItem("vox_uid");
+let userName=localStorage.getItem("vox_name")||"用户";
+let mediaRecorder=null,audioChunks=[],isRecording=false,timerInterval=null,timeLeft=30;
+const API="/api/v1";
+function showPage(id){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+const nav=document.getElementById("bottom-nav");
+nav.style.display=(id=="page-login"||id=="page-loading"||id=="page-record")?"none":"flex";
+}
+function navTo(page){showPage("page-"+page);if(page=="history")loadHistory();if(page=="profile")loadProfile();if(page=="home")loadRecent();}
+async function doLogin(){
+const phone=document.getElementById("phone-input").value.trim();
+if(!phone)return alert("请输入手机号");
+try{const r=await fetch(API+"/user/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone})});
+const d=await r.json();userId=d.user.id;userName=d.user.nickname;
+localStorage.setItem("vox_uid",userId);localStorage.setItem("vox_name",userName);
+document.getElementById("user-name").textContent=userName;showPage("page-home");loadRecent();
+}catch(e){alert("网络错误，请重试");}}
+function logout(){localStorage.removeItem("vox_uid");localStorage.removeItem("vox_name");userId=null;showPage("page-login");}
+async function startRecord(){showPage("page-record");}
+async function toggleRecord(){
+if(isRecording){stopRecord();return;}
+try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+mediaRecorder=new MediaRecorder(stream,{mimeType:"audio/webm;codecs=opus"});
+audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
+mediaRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());await analyzeAudio(new Blob(audioChunks,{type:"audio/webm"}));};
+mediaRecorder.start(100);isRecording=true;timeLeft=30;
+document.getElementById("record-btn").classList.add("recording");
+timerInterval=setInterval(()=>{timeLeft--;document.getElementById("timer").textContent="00:"+String(timeLeft).padStart(2,"0");if(timeLeft<=0)stopRecord();},1000);
+}catch(e){alert("无法访问麦克风，请检查浏览器权限");}}
+function stopRecord(){if(!isRecording)return;isRecording=false;clearInterval(timerInterval);
+if(mediaRecorder&&mediaRecorder.state!=="inactive")mediaRecorder.stop();
+document.getElementById("record-btn").classList.remove("recording");}
+async function analyzeAudio(blob){
+showPage("page-loading");
+const fd=new FormData();fd.append("audio",blob,"recording.webm");
+const headers=userId?{"X-User-Id":userId}:{};
+try{const r=await fetch(API+"/analyze",{method:"POST",headers,body:fd});const d=await r.json();showReport(d);}
+catch(e){showReport(generateDemo());}}
 
-    async function toggleRecording() {
-        if (isRecording) {
-            stopRecording();
-        } else {
-            await startRecording();
-        }
-    }
+function generateDemo(){
+return{report_id:"demo",timestamp:new Date().toISOString(),report:{
+overall_risk_level:"轻微关注",overall_score:42.5,recording_quality:"良好",
+feature_summary:{"基频":"142 Hz","Jitter":"0.0182","Shimmer":"0.0451","HNR":"14.3 dB","语速":"3.2/s","停顿比":"18.5%","RMS能量":"0.0312","时长":"30.0s"},
+diseases:[
+{disease:"焦虑状态",category:"心理健康",risk_score:45.2,risk_level:"中",key_markers:["语速偏快","音调偏高"],description:"焦虑时交感神经兴奋"},
+{disease:"疲劳状态",category:"健康状态",risk_score:38.7,risk_level:"中",key_markers:["能量偏低","语速偏慢"],description:"身体疲劳"},
+{disease:"心理压力",category:"心理健康",risk_score:32.1,risk_level:"低",key_markers:["音调升高"],description:"压力指标"},
+],
+recommendations:["💡 焦虑状态处于中等风险，建议关注压力管理。","💡 疲劳状态建议注意休息。","📌 此报告仅供参考，不构成医疗诊断。"],
+},ai_insight:"您的语音分析显示整体健康状况良好。焦虑和疲劳指标略有升高，可能与近期生活压力有关。建议保持规律作息，适当运动放松。"};}
+function showReport(data){
+showPage("page-report");
+const r=data.report;const d=new Date(data.timestamp||Date.now());
+document.getElementById("report-time").textContent=d.toLocaleString("zh-CN");
+const cls=r.overall_risk_level==="需关注"?"bad":(r.overall_risk_level==="轻微关注"?"warn":"good");
+const color=cls==="bad"?"var(--red)":(cls==="warn"?"var(--yellow)":"var(--green)");
+document.getElementById("report-summary").innerHTML=
+'<div class="score-circle '+cls+'"><div class="num" style="color:'+color+'">'+r.overall_score+'</div><div class="label">健康评分</div></div>'+
+'<p style="color:'+color+';font-weight:600">'+r.overall_risk_level+'</p><p class="text-xs">录音质量: '+r.recording_quality+'</p>';
+let fh='';for(const[k,v]of Object.entries(r.feature_summary||{})){fh+='<div class="feat-item"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';}
+document.getElementById("feat-grid").innerHTML=fh;
+document.getElementById("ai-insight").textContent=data.ai_insight||"分析完成";
+const cats=[...new Set(r.diseases.map(d=>d.category))];
+let th='<button class="tab active" onclick="filterD(this,'all')">全部</button>';
+cats.forEach(c=>{th+='<button class="tab" onclick="filterD(this,''+c+'')">'+c+'</button>';});
+document.getElementById("disease-tabs").innerHTML=th;
+window._diseases=r.diseases;renderDiseases(r.diseases);
+document.getElementById("rec-list").innerHTML=(r.recommendations||[]).map(r=>'<div class="rec-item">'+r+'</div>').join('');}
 
-    async function startRecording() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
-            audioChunks = [];
+function renderDiseases(diseases){
+document.getElementById("disease-list").innerHTML=diseases.map(d=>{
+const cls=d.risk_level==="高"?"high":(d.risk_level==="中"?"mid":"low");
+return '<div class="disease-card"><div style="display:flex;justify-content:space-between;align-items:center">'+
+'<div><div class="disease-name">'+d.disease+'</div><div class="disease-cat">'+d.category+'</div></div>'+
+'<div class="disease-score" style="color:var(--'+cls+')">'+d.risk_score+'</div></div>'+
+'<div class="bar"><div class="bar-fill '+cls+'" style="width:'+d.risk_score+'%"></div></div>'+
+'<div>'+d.key_markers.map(m=>'<span class="marker">'+m+'</span>').join('')+'</div></div>';}).join('');}
 
-            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-            mediaRecorder.onstop = async () => {
-                stream.getTracks().forEach(t => t.stop());
-                const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                await analyzeAudio(blob);
-            };
+function filterD(btn,cat){
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+btn.classList.add("active");
+renderDiseases(cat==="all"?window._diseases:window._diseases.filter(d=>d.category===cat));}
+async function loadRecent(){
+if(!userId)return;try{const r=await fetch(API+"/records?limit=3",{headers:{"X-User-Id":userId}});const d=await r.json();
+if(d.records&&d.records.length){document.getElementById("recent-list").innerHTML=d.records.map(r=>{
+const cls=r.overall_level==="需关注"?"high":(r.overall_level==="轻微关注"?"mid":"low");
+return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'+
+'<span class="text-xs">'+(r.created_at||"").slice(0,10)+'</span>'+
+'<span class="tag tag-'+cls+'">'+r.overall_score+"分 "+r.overall_level+"</span></div>";}).join("");}}catch(e){}}
 
-            mediaRecorder.start(100);
-            isRecording = true;
-            timeLeft = 30;
+async function loadHistory(){
+if(!userId)return;try{const r=await fetch(API+"/records?limit=50",{headers:{"X-User-Id":userId}});const d=await r.json();
+if(d.records&&d.records.length){document.getElementById("history-list").innerHTML='<div class="card">'+d.records.map(r=>{
+const cls=r.overall_level==="需关注"?"high":(r.overall_level==="轻微关注"?"mid":"low");
+return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'+
+'<div><p class="text-xs">'+(r.created_at||"").slice(0,16).replace("T"," ")+"</p></div>"+
+'<span style="font-size:20px;font-weight:700;color:var(--'+cls+')">'+r.overall_score+'</span></div>';}).join("")+"</div>";
+}else{document.getElementById("history-list").innerHTML='<div class="card text-center"><p class="text-sm">暂无检测记录</p></div>';}}catch(e){}}
 
-            // UI更新
-            document.getElementById('record-icon').classList.remove('bg-red-500');
-            document.getElementById('record-icon').classList.add('bg-white');
-            document.getElementById('record-btn').classList.add('recording-btn');
-            document.getElementById('record-status').textContent = '正在录制... 请自然说话';
-            document.getElementById('timer').classList.remove('hidden');
+async function loadProfile(){
+if(!userId)return;try{const r=await fetch(API+"/user/profile",{headers:{"X-User-Id":userId}});const d=await r.json();
+document.getElementById("profile-name").textContent=d.user?.nickname||"用户";
+document.getElementById("profile-phone").textContent=d.user?.phone||"";
+document.getElementById("stat-total").textContent=d.stats?.total_checks||0;
+document.getElementById("stat-avg").textContent=d.stats?.avg_score||"-";
+document.getElementById("stat-last").textContent=d.stats?.last_check?d.stats.last_check.slice(5,10):"-";}catch(e){}}
 
-            // 波形可视化
-            setupVisualizer(stream);
-
-            // 倒计时
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = `00:${String(timeLeft).padStart(2, '0')}`;
-                if (timeLeft <= 0) stopRecording();
-            }, 1000);
-
-        } catch(err) {
-            alert('无法访问麦克风。请检查浏览器权限设置。');
-        }
-    }
-
-    function stopRecording() {
-        if (!isRecording) return;
-        isRecording = false;
-        clearInterval(timerInterval);
-        cancelAnimationFrame(animFrame);
-
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-
-        document.getElementById('record-icon').classList.add('bg-red-500');
-        document.getElementById('record-icon').classList.remove('bg-white');
-        document.getElementById('record-btn').classList.remove('recording-btn');
-        document.getElementById('record-status').textContent = '分析中...';
-        document.getElementById('timer').classList.add('hidden');
-    }
-
-    function setupVisualizer(stream) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        const source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-
-        const canvas = document.getElementById('waveform');
-        const ctx = canvas.getContext('2d');
-        canvas.width = canvas.offsetWidth * 2;
-        canvas.height = canvas.offsetHeight * 2;
-
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
-        function draw() {
-            if (!isRecording) return;
-            animFrame = requestAnimationFrame(draw);
-            analyser.getByteFrequencyData(dataArray);
-
-            ctx.fillStyle = 'rgba(10,10,15,0.3)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            const barWidth = canvas.width / bufferLength * 2;
-            let x = 0;
-            for (let i = 0; i < bufferLength; i++) {
-                const barHeight = (dataArray[i] / 255) * canvas.height;
-                const hue = 200 + (dataArray[i] / 255) * 60;
-                ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.7)`;
-                ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-                x += barWidth;
-            }
-        }
-        draw();
-    }
-
-    async function analyzeAudio(blob) {
-        document.getElementById('record-section').classList.add('hidden');
-        document.getElementById('loading').classList.remove('hidden');
-
-        const formData = new FormData();
-        formData.append('audio', blob, 'recording.webm');
-
-        try {
-            const resp = await fetch('/api/analyze', { method: 'POST', body: formData });
-            const data = await resp.json();
-            displayReport(data);
-        } catch(e) {
-            // 离线Demo模式
-            displayReport(generateDemoReport());
-        }
-
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('report-section').classList.remove('hidden');
-    }
-
-    function generateDemoReport() {
-        return {
-            report_id: 'demo-' + Math.random().toString(36).slice(2,8),
-            timestamp: new Date().toISOString(),
-            report: {
-                overall_risk_level: '轻微关注',
-                overall_score: 42.5,
-                recording_quality: '良好',
-                feature_summary: { '基频':'142 Hz (变异38.2)', 'Jitter':'0.0182', 'Shimmer':'0.0451', 'HNR':'14.3 dB', '语速':'3.2 音节/秒', '停顿比':'18.5%', 'RMS能量':'0.0312' },
-                diseases: [
-                    { disease:'焦虑状态', category:'心理健康', risk_score:45.2, confidence:0.62, risk_level:'中', key_markers:['语速偏快','音调偏高','Jitter增大'], description:'焦虑时交感神经兴奋导致的声音变化' },
-                    { disease:'疲劳状态', category:'健康状态', risk_score:38.7, confidence:0.55, risk_level:'中', key_markers:['能量偏低','语速偏慢'], description:'身体疲劳对语音的影响' },
-                    { disease:'心理压力', category:'心理健康', risk_score:32.1, confidence:0.48, risk_level:'低', key_markers:['音调升高','HNR下降'], description:'压力水平的语音指标' },
-                    { disease:'帕金森病早期', category:'认知退行', risk_score:12.5, confidence:0.35, risk_level:'低', key_markers:['未检测到明显异常'], description:'帕金森影响发声肌群' },
-                    { disease:'抑郁风险', category:'心理健康', risk_score:8.3, confidence:0.30, risk_level:'低', key_markers:['未检测到明显异常'], description:'语音中的情绪低落信号' },
-                ],
-                recommendations: ['💡 【焦虑状态】处于中等风险，建议关注压力管理。','💡 【疲劳状态】建议注意休息，保证充足睡眠。','📌 此报告仅供参考，不构成医疗诊断。'],
-            }
-        };
-    }
-
-    function displayReport(data) {
-        const r = data.report;
-        document.getElementById('report-id').textContent = data.report_id;
-
-        // 总评
-        const scoreEl = document.getElementById('overall-score');
-        const levelEl = document.getElementById('overall-level');
-        scoreEl.textContent = r.overall_score;
-        if (r.overall_risk_level === '需关注') { scoreEl.className = 'text-5xl font-bold text-red-400'; levelEl.className = 'text-lg font-semibold text-red-400 mb-1'; }
-        else if (r.overall_risk_level === '轻微关注') { scoreEl.className = 'text-5xl font-bold text-yellow-400'; levelEl.className = 'text-lg font-semibold text-yellow-400 mb-1'; }
-        levelEl.textContent = r.overall_risk_level;
-        document.getElementById('recording-quality').textContent = '录音质量：' + r.recording_quality;
-
-        // 声学特征
-        const grid = document.getElementById('feature-grid');
-        grid.innerHTML = '';
-        for (const [k,v] of Object.entries(r.feature_summary || {})) {
-            grid.innerHTML += `<div class="bg-black/30 rounded-lg p-3"><div class="text-xs text-gray-500">${k}</div><div class="text-sm text-white font-mono">${v}</div></div>`;
-        }
-
-        // 疾病分类标签
-        const categories = [...new Set(r.diseases.map(d => d.category))];
-        const tabs = document.getElementById('disease-tabs');
-        tabs.innerHTML = `<button onclick="filterDiseases('all')" class="px-3 py-1 rounded-full text-xs bg-white/10 text-white tab-active">全部</button>`;
-        categories.forEach(c => {
-            tabs.innerHTML += `<button onclick="filterDiseases('${c}')" class="px-3 py-1 rounded-full text-xs bg-white/5 text-gray-400 hover:bg-white/10">${c}</button>`;
-        });
-
-        // 疾病列表
-        displayDiseases(r.diseases);
-
-        // 建议
-        const rec = document.getElementById('recommendations');
-        rec.innerHTML = r.recommendations.map(r => `<p>${r}</p>`).join('');
-    }
-
-    function displayDiseases(diseases) {
-        const list = document.getElementById('disease-list');
-        list.innerHTML = diseases.map(d => {
-            const riskClass = d.risk_level === '高' ? 'risk-high' : (d.risk_level === '中' ? 'risk-medium' : 'risk-low');
-            const barColor = d.risk_level === '高' ? 'bg-red-500' : (d.risk_level === '中' ? 'bg-yellow-500' : 'bg-green-500');
-            return `
-                <div class="bg-black/20 rounded-xl p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <div>
-                            <span class="font-medium text-white">${d.disease}</span>
-                            <span class="text-xs text-gray-600 ml-2">${d.category}</span>
-                        </div>
-                        <span class="${riskClass} font-bold text-lg">${d.risk_score}</span>
-                    </div>
-                    <div class="risk-bar mb-2"><div class="risk-fill ${barColor}" style="width:${d.risk_score}%"></div></div>
-                    <div class="flex flex-wrap gap-1 mb-1">
-                        ${d.key_markers.map(m => `<span class="text-xs px-2 py-0.5 rounded-full bg-white/5 text-gray-400">${m}</span>`).join('')}
-                    </div>
-                    <p class="text-xs text-gray-600">${d.description}</p>
-                </div>`;
-        }).join('');
-    }
-
-    let allDiseases = [];
-    function filterDiseases(cat) {
-        const report = document.getElementById('disease-list').innerHTML;
-        // 简单过滤
-        document.querySelectorAll('.tab-active').forEach(el => el.classList.remove('tab-active'));
-        event.target.classList.add('tab-active');
-    }
-
-    function resetAll() {
-        document.getElementById('report-section').classList.add('hidden');
-        document.getElementById('record-section').classList.remove('hidden');
-        document.getElementById('record-status').textContent = '点击按钮开始录制30秒语音';
-    }
-</script>
-</body>
-</html>
+if(userId){document.getElementById("user-name").textContent=userName;showPage("page-home");loadRecent();}
+else{showPage("page-login");}
+</script></body></html>
