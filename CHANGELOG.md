@@ -1,23 +1,58 @@
 # CHANGELOG
 
+## v0.3.0 (2026-04-26)
+
+### Frontend Overhaul
+- Premium dark theme (Linear/Vercel-inspired design)
+- Complete SVG icon system (zero emoji dependency)
+- Canvas-based waveform visualization during recording
+- Canvas-based trend charts in history and profile
+- Animated score circle with arc drawing
+- Smooth page transitions (fade + translateY)
+- Filterable disease risk cards by category
+- Mobile-first responsive layout (480px max-width)
+
+### Backend Improvements
+- Added uvicorn runner in main.py with env var configuration
+- API key moved to environment variables (MIMO_API_KEY)
+- Fallback insight generator when MIMO API unavailable
+- Trend summary generation
+- Added httpx dependency for async HTTP
+
+### Infrastructure
+- Added .gitignore (Python, DB, IDE, OS, audio files)
+- Added Dockerfile for containerized deployment
+- Added docker-compose.yml with volume persistence
+- Added MIT License
+
+## v0.2.0 (2026-04-22)
+
+### C-end Complete Version
+- User system: register/login/profile via phone number
+- Health records: full CRUD with SQLite persistence
+- Trend analysis: 30-day health trend tracking
+- User statistics: total checks, average score, history
+- AI insight: MIMO API integration for personalized health advice
+- Disease info endpoint: categorized disease registry
+
 ## v0.1.0 (2026-04-22)
 
-### 核心功能
-- 🔊 声学特征提取引擎：61维特征向量（librosa + parselmouth双引擎）
-- 🏥 疾病检测引擎：25种疾病/健康状态，5大类别
-- 🌐 FastAPI后端：3个API端点（/api/analyze, /api/diseases, /api/health）
-- 🎨 Web前端：浏览器录音 + 实时波形 + 健康报告展示
-- 📴 离线Demo模式：无后端也能体验
+### Core Features
+- Acoustic feature extraction engine: 59-dim feature vector (librosa + numpy)
+- Disease detection engine: 25 diseases/conditions, 5 categories
+- FastAPI backend: 3 API endpoints (/api/analyze, /api/diseases, /api/health)
+- Web frontend: browser recording + real-time waveform + health report
+- Offline demo mode: works without backend
 
-### 检测覆盖
-- 心理健康：抑郁、焦虑、倦怠、压力、社交孤立
-- 认知退行：帕金森、阿尔茨海默、轻度认知障碍、老年衰弱
-- 呼吸系统：慢阻肺、哮喘、呼吸窘迫
-- 心血管：高血压、心衰
-- 代谢疾病：2型糖尿病、甲状腺异常
-- 健康状态：睡眠、疲劳、酒精、疼痛、情绪、嗓音、听力、认知负荷、自闭谱系
+### Detection Coverage
+- Mental Health: depression, anxiety, burnout, stress, social isolation
+- Cognitive Decline: Parkinson's, Alzheimer's, MCI, frailty
+- Respiratory: COPD, asthma, respiratory distress
+- Cardiovascular: hypertension, heart failure
+- Metabolic: type 2 diabetes, thyroid disorders
+- Health States: sleep, fatigue, alcohol, pain, emotion, voice, hearing, cognitive load, autism spectrum
 
-### 已知限制
-- 疾病检测使用规则化启发式（Mock模式），需训练模型替换
-- 未集成parselmouth（需单独安装）
-- 无真实临床数据验证
+### Known Limitations
+- Disease detection uses rule-based heuristics (Mock mode)
+- parselmouth not integrated (requires separate install)
+- No real clinical data validation

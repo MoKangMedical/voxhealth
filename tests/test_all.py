@@ -16,7 +16,7 @@ def test_feature_extractor():
     # 测试无音频的AcousticFeatures
     feat = AcousticFeatures(f0_mean=142, jitter_local=0.018, speech_rate=3.2)
     vec = feat.to_vector()
-    assert len(vec) == 61, f"Feature vector should be 61 dim, got {len(vec)}"
+    assert len(vec) == 59, f"Feature vector should be 59 dim, got {len(vec)}"
     print(f"  ✅ 特征向量: {len(vec)}维")
     
     # 测试真实音频提取

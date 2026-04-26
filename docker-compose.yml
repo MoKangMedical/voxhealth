@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  voxhealth:
+    build: .
+    ports:
+      - "8100:8100"
+    environment:
+      - VOXHEALTH_HOST=0.0.0.0
+      - VOXHEALTH_PORT=8100
+      - MIMO_API_KEY=${MIMO_API_KEY:-}
+      - MIMO_BASE_URL=${MIMO_BASE_URL:-https://api.xiaomimimo.com/v1}
+    volumes:
+      - voxhealth-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  voxhealth-data:

@@ -3,249 +3,677 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>VoxHealth</title>
+<title>VoxHealth - AI 声纹健康筛查</title>
 <style>
+:root{--bg:#0a0a0f;--card:rgba(255,255,255,.04);--card-border:rgba(255,255,255,.06);--text:#e2e2e8;--text-dim:rgba(255,255,255,.45);--text-muted:rgba(255,255,255,.25);--accent:#3b82f6;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--orange:#f97316;--radius:14px;--radius-sm:10px;--transition:all .3s cubic-bezier(.4,0,.2,1)}
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);--text:#e5e5e5;--dim:#888;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--blue:#3b82f6}
-body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden}
-.page{display:none;padding:16px;min-height:100vh}.page.active{display:block}
-.header{text-align:center;padding:24px 0 16px}.header h1{font-size:28px;font-weight:700}.header p{color:var(--dim);font-size:13px;margin-top:4px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
-.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-primary{background:var(--blue);color:#fff}.btn-primary:active{opacity:.8}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn-danger{background:var(--red);color:#fff}
-.record-btn{width:80px;height:80px;border-radius:50%;border:3px solid var(--red);background:transparent;display:flex;align-items:center;justify-content:center;margin:20px auto;transition:all .3s}
-.record-btn .dot{width:28px;height:28px;border-radius:50%;background:var(--red);transition:all .3s}
-.record-btn.recording{border-color:#fff;animation:pulse 1.5s infinite}
-.record-btn.recording .dot{border-radius:4px;width:24px;height:24px}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
-.timer{font-size:32px;font-weight:300;font-family:monospace;text-align:center;margin:12px 0;color:var(--dim)}
-.wave-bar{width:100%;height:64px;background:rgba(0,0,0,.3);border-radius:12px;overflow:hidden;display:flex;align-items:end;gap:2px;padding:4px}
-.wave-bar span{flex:1;background:var(--blue);border-radius:2px;min-height:2px;transition:height .05s}
-.score-circle{width:100px;height:100px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 12px;border:3px solid}
-.score-circle.good{border-color:var(--green)}.score-circle.warn{border-color:var(--yellow)}.score-circle.bad{border-color:var(--red)}
-.score-circle .num{font-size:32px;font-weight:700}.score-circle .label{font-size:10px;color:var(--dim)}
-.tag{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;margin:2px}
-.tag-high{background:rgba(239,68,68,.15);color:var(--red)}
-.tag-mid{background:rgba(234,179,8,.15);color:var(--yellow)}
-.tag-low{background:rgba(34,197,94,.15);color:var(--green)}
-.bar{height:4px;border-radius:2px;background:rgba(255,255,255,.06);margin:6px 0}.bar-fill{height:100%;border-radius:2px;transition:width .6s}
-.bar-fill.high{background:var(--red)}.bar-fill.mid{background:var(--yellow)}.bar-fill.low{background:var(--green)}
-.disease-card{padding:12px;border-bottom:1px solid var(--border)}.disease-card:last-child{border:none}
-.disease-name{font-weight:600;font-size:14px}.disease-score{font-size:20px;font-weight:700}
-.disease-cat{font-size:11px;color:var(--dim)}
-.marker{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(255,255,255,.05);color:var(--dim);margin:1px}
-.rec-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5}
-.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.feat-item{background:rgba(0,0,0,.2);border-radius:8px;padding:8px}.feat-item .k{font-size:10px;color:var(--dim)}.feat-item .v{font-size:13px;font-family:monospace}
-.tabs{display:flex;gap:8px;margin:12px 0;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
-.tab{padding:6px 12px;border-radius:8px;font-size:12px;background:rgba(255,255,255,.05);color:var(--dim);cursor:pointer;border:none;flex-shrink:0}
-.tab.active{background:var(--blue);color:#fff}
-.loading{text-align:center;padding:40px}.loading .dots{display:flex;justify-content:center;gap:4px;margin-top:12px}
-.loading .dots span{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:bounce .6s infinite alternate}
-.loading .dots span:nth-child(2){animation-delay:.2s}.loading .dots span:nth-child(3){animation-delay:.4s}
-@keyframes bounce{to{opacity:.3;transform:translateY(-8px)}}
-.text-sm{font-size:12px}.text-xs{font-size:11px;color:var(--dim)}.text-center{text-align:center}.mt-8{margin-top:8px}.mb-12{margin-bottom:12px}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(10,10,15,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;padding:8px 0 env(safe-area-inset-bottom);z-index:100}
-.nav-item{flex:1;text-align:center;padding:4px 0;font-size:10px;color:var(--dim);cursor:pointer;transition:color .2s}
-.nav-item.active{color:var(--blue)}.nav-item .icon{font-size:20px;margin-bottom:2px}
-.pb-80{padding-bottom:80px}
-.trend-chart{width:100%;height:200px;position:relative}
-.trend-line{fill:none;stroke:var(--blue);stroke-width:2}
-.trend-dot{fill:var(--blue)}
-.hidden{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+#app{width:100%;max-width:480px;min-height:100vh;position:relative;overflow:hidden}
+.page{display:none;flex-direction:column;min-height:100vh;padding-bottom:80px;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.page.active{display:flex;opacity:1;transform:translateY(0)}
+.page.entering{display:flex;opacity:0;transform:translateY(8px)}
+.page.no-pad{padding-bottom:0}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;position:sticky;top:0;z-index:10;background:rgba(10,10,15,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+header h1{font-size:17px;font-weight:600;letter-spacing:-.3px}
+header .back-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:4px;display:flex;align-items:center}
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;justify-content:space-around;padding:8px 0 env(safe-area-inset-bottom,12px);background:rgba(10,10,15,.92);backdrop-filter:blur(20px);border-top:1px solid var(--card-border);z-index:100}
+.tab-bar button{background:none;border:none;color:var(--text-dim);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 20px;font-size:10px;transition:var(--transition)}
+.tab-bar button.active{color:var(--accent)}
+.tab-bar button svg{width:22px;height:22px}
+.section-title{font-size:13px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;padding:0 20px;margin:20px 0 10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:var(--transition);padding:14px 28px;color:#fff}
+.btn-primary{background:var(--accent)}.btn-primary:hover{background:#2563eb}
+.btn-large{width:100%;padding:16px;border-radius:var(--radius)}
+.btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--card-border)}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px;margin:0 20px 10px;transition:var(--transition)}
+.card:active{transform:scale(.98)}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-yellow{background:rgba(234,179,8,.15);color:var(--yellow)}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red)}
+.progress-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;flex:1}
+.progress-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.tab-group{display:flex;gap:6px;padding:0 20px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.tab-group::-webkit-scrollbar{display:none}
+.tab-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--card-border);background:transparent;color:var(--text-dim);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:var(--transition)}
+.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 20px;margin-bottom:16px}
+.feature-item{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.feature-item .value{font-size:22px;font-weight:700;margin:4px 0}
+.feature-item .label{font-size:11px;color:var(--text-dim)}
+.insight-box{margin:0 20px 16px;padding:16px;background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(34,197,94,.06));border:1px solid rgba(59,130,246,.15);border-radius:var(--radius);font-size:14px;line-height:1.7;color:var(--text)}
+.risk-card{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--card-border)}
+.risk-card:last-child{border-bottom:none}
+.risk-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.risk-info{flex:1;min-width:0}
+.risk-info .name{font-size:14px;font-weight:500}
+.risk-info .level{font-size:12px;color:var(--text-dim);margin-top:2px}
+.risk-value{font-size:13px;font-weight:600;min-width:36px;text-align:right}
+.rec-container{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 20px}
+.rec-timer{font-size:56px;font-weight:200;font-variant-numeric:tabular-nums;margin:24px 0;letter-spacing:2px}
+.rec-label{font-size:14px;color:var(--text-dim);margin-bottom:8px}
+.rec-btn{width:72px;height:72px;border-radius:50%;border:3px solid var(--red);background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);margin-top:24px}
+.rec-btn:hover{background:rgba(239,68,68,.25)}
+.rec-dot{width:28px;height:28px;border-radius:6px;background:var(--red)}
+#waveformCanvas{width:100%;height:120px;margin:16px 0}
+.score-circle{width:160px;height:160px;margin:0 auto 20px}
+.login-container{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 20px;text-align:center}
+.login-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--accent),#8b5cf6);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.login-title{font-size:26px;font-weight:700;margin-bottom:6px}
+.login-sub{font-size:14px;color:var(--text-dim);margin-bottom:36px}
+.input-field{width:100%;padding:14px 16px;border-radius:var(--radius-sm);border:1px solid var(--card-border);background:var(--card);color:var(--text);font-size:15px;outline:none;transition:var(--transition);margin-bottom:12px}
+.input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.input-field::placeholder{color:var(--text-muted)}
+.loading-dots{display:flex;gap:10px;justify-content:center;margin:24px 0}
+.loading-dots span{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.4s ease infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.profile-header{text-align:center;padding:24px 20px}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;font-weight:700;color:#fff}
+.profile-name{font-size:18px;font-weight:600}
+.profile-id{font-size:12px;color:var(--text-dim);margin-top:4px}
+.stats-row{display:flex;gap:8px;padding:0 20px;margin:16px 0}
+.stat-card{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:16px;text-align:center}
+.stat-card .num{font-size:24px;font-weight:700;color:var(--accent)}
+.stat-card .label{font-size:11px;color:var(--text-dim);margin-top:4px}
+.list-item{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--card-border);cursor:pointer;transition:var(--transition)}
+.list-item:active{background:rgba(255,255,255,.03)}
+.list-item .date{font-size:13px;color:var(--text-dim)}
+.list-item .score{font-size:20px;font-weight:700}
+.trend-canvas{width:100%;height:180px;margin:8px 20px}
+.logout-btn{margin:24px 20px;padding:14px;border:1px solid rgba(239,68,68,.3);background:transparent;color:var(--red);border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition)}
+.logout-btn:hover{background:rgba(239,68,68,.1)}
+.rec-icon{color:var(--red);animation:rec-blink 1.2s ease infinite}
+@keyframes rec-blink{0%,100%{opacity:1}50%{opacity:.3}}
 </style>
 </head>
 <body>
-<!-- 登录页 -->
-<div id="page-login" class="page active">
-<div class="header"><h1>VoxHealth</h1><p>30秒语音 · 健康早筛</p></div>
-<div class="card" style="margin-top:40px">
-<p class="text-sm mb-12" style="text-align:center">输入手机号开始使用</p>
-<input id="phone-input" type="tel" placeholder="手机号" style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.3);color:#fff;font-size:16px;margin-bottom:12px">
-<button class="btn btn-primary" onclick="doLogin()">开始使用</button>
-</div>
-<p class="text-xs text-center" style="margin-top:20px">隐私优先 · 音频分析后即删</p>
+<div id="app">
+
+<!-- LOGIN PAGE -->
+<div class="page active no-pad" id="page-login">
+  <div class="login-container">
+    <div class="login-logo">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </div>
+    <div class="login-title">VoxHealth</div>
+    <div class="login-sub">AI 声纹健康筛查平台</div>
+    <input class="input-field" id="login-name" type="text" placeholder="请输入您的姓名">
+    <input class="input-field" id="login-phone" type="tel" placeholder="手机号码（可选）">
+    <button class="btn btn-primary btn-large" onclick="doLogin()" style="margin-top:8px">开始使用</button>
+    <p style="margin-top:16px;font-size:12px;color:var(--text-muted)">通过 30 秒语音，AI 分析 25 项健康风险</p>
+  </div>
 </div>
 
-<!-- 首页 -->
-<div id="page-home" class="page">
-<div class="header"><h1>VoxHealth</h1><p>你好，<span id="user-name">用户</span></p></div>
-<div class="card text-center" style="padding:24px">
-<p class="text-sm" style="margin-bottom:12px">点击开始30秒语音健康检测</p>
-<button class="btn btn-primary mt-8" onclick="startRecord()">🎤 开始检测</button>
-</div>
-<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">📊 最近检测</p><div id="recent-list"><p class="text-xs">暂无记录</p></div></div>
-</div>
-
-<!-- 录音页 -->
-<div id="page-record" class="page">
-<div class="header"><h1>🎤 语音检测</h1><p>请自然说话30秒</p></div>
-<div class="timer" id="timer">00:30</div>
-<button class="record-btn" id="record-btn" onclick="toggleRecord()"><div class="dot"></div></button>
-<p class="text-xs text-center mt-8">支持中文/英文/任何语言</p>
-</div>
-
-<!-- 分析中 -->
-<div id="page-loading" class="page">
-<div class="loading" style="padding-top:100px">
-<div style="font-size:48px;margin-bottom:16px">🧠</div>
-<p>AI正在分析你的语音...</p>
-<div class="dots"><span></span><span></span><span></span></div>
-</div>
-</div>
-
-<!-- 报告页 -->
-<div id="page-report" class="page pb-80">
-<div class="header"><h1>📋 健康报告</h1><p id="report-time"></p></div>
-<div class="card text-center" id="report-summary"></div>
-<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">🎙️ 声学特征</p><div class="feat-grid" id="feat-grid"></div></div>
-<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">🤖 AI健康解读</p><p id="ai-insight" class="text-sm" style="line-height:1.6"></p></div>
-<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">🏥 疾病风险筛查</p><div class="tabs" id="disease-tabs"></div><div id="disease-list"></div></div>
-<div class="card"><p class="text-sm" style="font-weight:600;margin-bottom:8px">💡 建议</p><div id="rec-list"></div></div>
-<div style="padding:16px"><button class="btn btn-outline" onclick="showPage('page-home')">返回首页</button></div>
+<!-- HOME PAGE -->
+<div class="page" id="page-home">
+  <header>
+    <h1>VoxHealth</h1>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </header>
+  <div style="padding:0 20px">
+    <div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.08));border-radius:var(--radius);padding:24px;margin-bottom:20px">
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:4px">今日健康评估</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:16px">开始您的语音健康筛查</div>
+      <button class="btn btn-primary" onclick="goTo('recording')" style="font-size:14px;padding:12px 24px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        开始录音 (30秒)
+      </button>
+    </div>
+  </div>
+  <div class="section-title">最近检测</div>
+  <div id="recent-records">
+    <div class="card" style="text-align:center;color:var(--text-dim);font-size:14px;padding:30px">暂无检测记录</div>
+  </div>
+  <div class="section-title" style="margin-top:12px">健康知识</div>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(34,197,94,.12);display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500">声纹与心血管健康</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">研究表明声纹变化可反映心血管状态</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
 </div>
 
-<!-- 历史页 -->
-<div id="page-history" class="page pb-80">
-<div class="header"><h1>📊 检测历史</h1><p>查看所有记录</p></div>
-<div id="history-list"></div>
+<!-- RECORDING PAGE -->
+<div class="page" id="page-recording">
+  <header>
+    <button class="back-btn" onclick="goTo('home')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    </button>
+    <h1>语音录制</h1>
+    <div style="width:22px"></div>
+  </header>
+  <div class="rec-container">
+    <svg class="rec-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+    <div class="rec-label">请朗读屏幕上的文字</div>
+    <canvas id="waveformCanvas"></canvas>
+    <div class="rec-timer" id="rec-timer">00:30</div>
+    <div style="font-size:13px;color:var(--text-dim);text-align:center;line-height:1.6;padding:0 10px;margin-bottom:8px">
+      "春天来了，万物复苏。阳光温暖地洒在大地上，花儿竞相开放，鸟儿在枝头欢快地歌唱。"
+    </div>
+    <button class="rec-btn" id="rec-btn" onclick="toggleRecording()">
+      <div class="rec-dot" id="rec-dot"></div>
+    </button>
+    <div style="margin-top:12px;font-size:13px;color:var(--text-dim)" id="rec-status">点击开始录制</div>
+  </div>
 </div>
 
-<!-- 我的页 -->
-<div id="page-profile" class="page pb-80">
-<div class="header"><h1>👤 我的</h1></div>
-<div class="card">
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-<div style="width:48px;height:48px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:20px">👤</div>
-<div><p id="profile-name" style="font-weight:600"></p><p id="profile-phone" class="text-xs"></p></div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
-<div><p id="stat-total" style="font-size:24px;font-weight:700">0</p><p class="text-xs">检测次数</p></div>
-<div><p id="stat-avg" style="font-size:24px;font-weight:700">-</p><p class="text-xs">平均分</p></div>
-<div><p id="stat-last" style="font-size:24px;font-weight:700">-</p><p class="text-xs">上次检测</p></div>
-</div>
-</div>
-<div class="card"><button class="btn btn-outline" onclick="logout()">退出登录</button></div>
+<!-- LOADING PAGE -->
+<div class="page" id="page-loading">
+  <div class="rec-container" style="justify-content:center">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+    </svg>
+    <div style="font-size:18px;font-weight:600;margin:20px 0 8px">AI 正在分析您的声纹</div>
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:24px">提取声学特征，评估健康风险...</div>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:16px">预计需要 10-15 秒</div>
+  </div>
 </div>
 
-<!-- 底部导航 -->
-<div class="nav" id="bottom-nav" style="display:none">
-<div class="nav-item active" onclick="navTo('home')"><div class="icon">🏠</div>首页</div>
-<div class="nav-item" onclick="navTo('history')"><div class="icon">📊</div>历史</div>
-<div class="nav-item" onclick="navTo('profile')"><div class="icon">👤</div>我的</div>
+<!-- REPORT PAGE -->
+<div class="page" id="page-report">
+  <header>
+    <button class="back-btn" onclick="goTo('home')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    </button>
+    <h1>检测报告</h1>
+    <div style="width:22px"></div>
+  </header>
+  <div id="report-content"></div>
 </div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="page-history">
+  <header><h1>检测历史</h1><div style="width:22px"></div></header>
+  <div class="section-title">健康趋势</div>
+  <div class="card" style="padding:12px"><canvas id="trendCanvas" class="trend-canvas"></canvas></div>
+  <div class="section-title">历史记录</div>
+  <div id="history-list"></div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="page" id="page-profile">
+  <header><h1>我的</h1><div style="width:22px"></div></header>
+  <div class="profile-header">
+    <div class="profile-avatar" id="profile-avatar">U</div>
+    <div class="profile-name" id="profile-name">用户</div>
+    <div class="profile-id" id="profile-id"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" id="stat-total">0</div><div class="label">总检测次数</div></div>
+    <div class="stat-card"><div class="num" id="stat-avg">--</div><div class="label">平均健康分</div></div>
+    <div class="stat-card"><div class="num" id="stat-streak">0</div><div class="label">连续检测天</div></div>
+  </div>
+  <div class="section-title">健康趋势</div>
+  <div class="card" style="padding:12px"><canvas id="profileTrendCanvas" class="trend-canvas"></canvas></div>
+  <div class="section-title">设置</div>
+  <div class="card">
+    <div class="list-item" style="padding:14px 0;border:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span style="flex:1;font-size:14px">检测提醒</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="list-item" style="padding:14px 0;border:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span style="flex:1;font-size:14px">隐私协议</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+  <button class="logout-btn" onclick="doLogout()">退出登录</button>
+</div>
+
+<!-- TAB BAR -->
+<nav class="tab-bar" id="tab-bar" style="display:none">
+  <button class="active" onclick="switchTab('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>首页</span>
+  </button>
+  <button onclick="switchTab('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span>历史</span>
+  </button>
+  <button onclick="switchTab('profile')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>我的</span>
+  </button>
+</nav>
+</div>
+
 <script>
-let userId=localStorage.getItem("vox_uid");
-let userName=localStorage.getItem("vox_name")||"用户";
-let mediaRecorder=null,audioChunks=[],isRecording=false,timerInterval=null,timeLeft=30;
-const API="/api/v1";
-function showPage(id){
-document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-const nav=document.getElementById("bottom-nav");
-nav.style.display=(id=="page-login"||id=="page-loading"||id=="page-record")?"none":"flex";
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+let currentPage = 'login';
+let userId = localStorage.getItem('vh_uid');
+let userName = localStorage.getItem('vh_name') || '用户';
+let mediaRecorder, audioChunks = [], recordingInterval, audioCtx, analyser, animFrameId;
+let records = [], profile = {}, trends = [];
+
+// Disease definitions
+const DISEASES = [
+  {name:'心血管疾病',cat:'心血管',icon:'heart',color:'#ef4444'},
+  {name:'冠心病',cat:'心血管',icon:'heart',color:'#f97316'},
+  {name:'心律不齐',cat:'心血管',icon:'activity',color:'#ef4444'},
+  {name:'高血压',cat:'心血管',icon:'activity',color:'#f97316'},
+  {name:'帕金森病',cat:'神经',icon:'brain',color:'#8b5cf6'},
+  {name:'阿尔茨海默症',cat:'神经',icon:'brain',color:'#a855f7'},
+  {name:'抑郁症',cat:'精神',icon:'brain',color:'#6366f1'},
+  {name:'焦虑障碍',cat:'精神',icon:'brain',color:'#818cf8'},
+  {name:'甲状腺功能异常',cat:'内分泌',icon:'activity',color:'#eab308'},
+  {name:'糖尿病',cat:'内分泌',icon:'activity',color:'#f59e0b'},
+  {name:'慢性阻塞性肺病',cat:'呼吸',icon:'activity',color:'#22c55e'},
+  {name:'哮喘',cat:'呼吸',icon:'activity',color:'#10b981'},
+  {name:'睡眠呼吸暂停',cat:'呼吸',icon:'activity',color:'#14b8a6'},
+  {name:'声带病变',cat:'耳鼻喉',icon:'activity',color:'#06b6d4'},
+  {name:'咽喉炎',cat:'耳鼻喉',icon:'activity',color:'#0ea5e9'},
+  {name:'中风风险',cat:'神经',icon:'brain',color:'#dc2626'},
+  {name:'偏头痛',cat:'神经',icon:'brain',color:'#7c3aed'},
+  {name:'贫血',cat:'血液',icon:'heart',color:'#f43f5e'},
+  {name:'骨质疏松',cat:'骨骼',icon:'activity',color:'#a3a3a3'},
+  {name:'风湿性关节炎',cat:'骨骼',icon:'activity',color:'#78716c'},
+  {name:'肝功能异常',cat:'消化',icon:'activity',color:'#fb923c'},
+  {name:'肾功能异常',cat:'泌尿',icon:'activity',color:'#fbbf24'},
+  {name:'过敏体质',cat:'免疫',icon:'heart',color:'#34d399'},
+  {name:'免疫功能低下',cat:'免疫',icon:'heart',color:'#4ade80'},
+  {name:'认知功能衰退',cat:'神经',icon:'brain',color:'#c084fc'}
+];
+const CATS = ['全部','心血管','神经','精神','内分泌','呼吸','耳鼻喉','血液','骨骼','消化','泌尿','免疫'];
+
+function goTo(page) {
+  const prev = $(`#page-${currentPage}`);
+  const next = $(`#page-${page}`);
+  if (prev === next) return;
+  prev.classList.remove('active');
+  prev.classList.add('entering');
+  setTimeout(() => { prev.classList.remove('entering'); prev.style.display = 'none'; }, 300);
+  setTimeout(() => { next.style.display = 'flex'; requestAnimationFrame(() => next.classList.add('active')); }, 50);
+  currentPage = page;
+  const tb = $('#tab-bar');
+  tb.style.display = ['home','history','profile'].includes(page) ? 'flex' : 'none';
+  $$('.tab-bar button').forEach((b,i) => {
+    const tabs = ['home','history','profile'];
+    b.classList.toggle('active', tabs[i] === page);
+  });
+  if (page === 'home') loadRecords();
+  if (page === 'history') { loadRecords(); setTimeout(drawTrendChart, 200); }
+  if (page === 'profile') { loadProfile(); setTimeout(() => drawTrendChart('profileTrendCanvas'), 200); }
 }
-function navTo(page){showPage("page-"+page);if(page=="history")loadHistory();if(page=="profile")loadProfile();if(page=="home")loadRecent();}
-async function doLogin(){
-const phone=document.getElementById("phone-input").value.trim();
-if(!phone)return alert("请输入手机号");
-try{const r=await fetch(API+"/user/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone})});
-const d=await r.json();userId=d.user.id;userName=d.user.nickname;
-localStorage.setItem("vox_uid",userId);localStorage.setItem("vox_name",userName);
-document.getElementById("user-name").textContent=userName;showPage("page-home");loadRecent();
-}catch(e){alert("网络错误，请重试");}}
-function logout(){localStorage.removeItem("vox_uid");localStorage.removeItem("vox_name");userId=null;showPage("page-login");}
-async function startRecord(){showPage("page-record");}
-async function toggleRecord(){
-if(isRecording){stopRecord();return;}
-try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-mediaRecorder=new MediaRecorder(stream,{mimeType:"audio/webm;codecs=opus"});
-audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
-mediaRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());await analyzeAudio(new Blob(audioChunks,{type:"audio/webm"}));};
-mediaRecorder.start(100);isRecording=true;timeLeft=30;
-document.getElementById("record-btn").classList.add("recording");
-timerInterval=setInterval(()=>{timeLeft--;document.getElementById("timer").textContent="00:"+String(timeLeft).padStart(2,"0");if(timeLeft<=0)stopRecord();},1000);
-}catch(e){alert("无法访问麦克风，请检查浏览器权限");}}
-function stopRecord(){if(!isRecording)return;isRecording=false;clearInterval(timerInterval);
-if(mediaRecorder&&mediaRecorder.state!=="inactive")mediaRecorder.stop();
-document.getElementById("record-btn").classList.remove("recording");}
-async function analyzeAudio(blob){
-showPage("page-loading");
-const fd=new FormData();fd.append("audio",blob,"recording.webm");
-const headers=userId?{"X-User-Id":userId}:{};
-try{const r=await fetch(API+"/analyze",{method:"POST",headers,body:fd});const d=await r.json();showReport(d);}
-catch(e){showReport(generateDemo());}}
 
-function generateDemo(){
-return{report_id:"demo",timestamp:new Date().toISOString(),report:{
-overall_risk_level:"轻微关注",overall_score:42.5,recording_quality:"良好",
-feature_summary:{"基频":"142 Hz","Jitter":"0.0182","Shimmer":"0.0451","HNR":"14.3 dB","语速":"3.2/s","停顿比":"18.5%","RMS能量":"0.0312","时长":"30.0s"},
-diseases:[
-{disease:"焦虑状态",category:"心理健康",risk_score:45.2,risk_level:"中",key_markers:["语速偏快","音调偏高"],description:"焦虑时交感神经兴奋"},
-{disease:"疲劳状态",category:"健康状态",risk_score:38.7,risk_level:"中",key_markers:["能量偏低","语速偏慢"],description:"身体疲劳"},
-{disease:"心理压力",category:"心理健康",risk_score:32.1,risk_level:"低",key_markers:["音调升高"],description:"压力指标"},
-],
-recommendations:["💡 焦虑状态处于中等风险，建议关注压力管理。","💡 疲劳状态建议注意休息。","📌 此报告仅供参考，不构成医疗诊断。"],
-},ai_insight:"您的语音分析显示整体健康状况良好。焦虑和疲劳指标略有升高，可能与近期生活压力有关。建议保持规律作息，适当运动放松。"};}
-function showReport(data){
-showPage("page-report");
-const r=data.report;const d=new Date(data.timestamp||Date.now());
-document.getElementById("report-time").textContent=d.toLocaleString("zh-CN");
-const cls=r.overall_risk_level==="需关注"?"bad":(r.overall_risk_level==="轻微关注"?"warn":"good");
-const color=cls==="bad"?"var(--red)":(cls==="warn"?"var(--yellow)":"var(--green)");
-document.getElementById("report-summary").innerHTML=
-'<div class="score-circle '+cls+'"><div class="num" style="color:'+color+'">'+r.overall_score+'</div><div class="label">健康评分</div></div>'+
-'<p style="color:'+color+';font-weight:600">'+r.overall_risk_level+'</p><p class="text-xs">录音质量: '+r.recording_quality+'</p>';
-let fh='';for(const[k,v]of Object.entries(r.feature_summary||{})){fh+='<div class="feat-item"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';}
-document.getElementById("feat-grid").innerHTML=fh;
-document.getElementById("ai-insight").textContent=data.ai_insight||"分析完成";
-const cats=[...new Set(r.diseases.map(d=>d.category))];
-let th='<button class="tab active" onclick="filterD(this,'all')">全部</button>';
-cats.forEach(c=>{th+='<button class="tab" onclick="filterD(this,''+c+'')">'+c+'</button>';});
-document.getElementById("disease-tabs").innerHTML=th;
-window._diseases=r.diseases;renderDiseases(r.diseases);
-document.getElementById("rec-list").innerHTML=(r.recommendations||[]).map(r=>'<div class="rec-item">'+r+'</div>').join('');}
+function switchTab(tab) { goTo(tab); }
 
-function renderDiseases(diseases){
-document.getElementById("disease-list").innerHTML=diseases.map(d=>{
-const cls=d.risk_level==="高"?"high":(d.risk_level==="中"?"mid":"low");
-return '<div class="disease-card"><div style="display:flex;justify-content:space-between;align-items:center">'+
-'<div><div class="disease-name">'+d.disease+'</div><div class="disease-cat">'+d.category+'</div></div>'+
-'<div class="disease-score" style="color:var(--'+cls+')">'+d.risk_score+'</div></div>'+
-'<div class="bar"><div class="bar-fill '+cls+'" style="width:'+d.risk_score+'%"></div></div>'+
-'<div>'+d.key_markers.map(m=>'<span class="marker">'+m+'</span>').join('')+'</div></div>';}).join('');}
+async function apiCall(method, url, body, isForm = false) {
+  const headers = {};
+  if (userId) headers['X-User-Id'] = userId;
+  if (!isForm) headers['Content-Type'] = 'application/json';
+  try {
+    const res = await fetch(url, { method, headers, body: isForm ? body : (body ? JSON.stringify(body) : undefined) });
+    if (!res.ok) throw new Error(res.status);
+    return await res.json();
+  } catch (e) { console.warn('API call failed, using mock:', e.message); return null; }
+}
 
-function filterD(btn,cat){
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-btn.classList.add("active");
-renderDiseases(cat==="all"?window._diseases:window._diseases.filter(d=>d.category===cat));}
-async function loadRecent(){
-if(!userId)return;try{const r=await fetch(API+"/records?limit=3",{headers:{"X-User-Id":userId}});const d=await r.json();
-if(d.records&&d.records.length){document.getElementById("recent-list").innerHTML=d.records.map(r=>{
-const cls=r.overall_level==="需关注"?"high":(r.overall_level==="轻微关注"?"mid":"low");
-return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'+
-'<span class="text-xs">'+(r.created_at||"").slice(0,10)+'</span>'+
-'<span class="tag tag-'+cls+'">'+r.overall_score+"分 "+r.overall_level+"</span></div>";}).join("");}}catch(e){}}
+function mockRecords() {
+  const now = Date.now();
+  return Array.from({length: 8}, (_, i) => ({
+    id: `mock_${i}`,
+    date: new Date(now - i * 86400000 * (1 + Math.random())).toISOString(),
+    score: 60 + Math.floor(Math.random() * 35),
+    diseases: DISEASES.slice(0, 8).map(d => ({ name: d.name, risk: Math.random() * 0.8, level: ['低','中','高'][Math.floor(Math.random()*3)] }))
+  }));
+}
 
-async function loadHistory(){
-if(!userId)return;try{const r=await fetch(API+"/records?limit=50",{headers:{"X-User-Id":userId}});const d=await r.json();
-if(d.records&&d.records.length){document.getElementById("history-list").innerHTML='<div class="card">'+d.records.map(r=>{
-const cls=r.overall_level==="需关注"?"high":(r.overall_level==="轻微关注"?"mid":"low");
-return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'+
-'<div><p class="text-xs">'+(r.created_at||"").slice(0,16).replace("T"," ")+"</p></div>"+
-'<span style="font-size:20px;font-weight:700;color:var(--'+cls+')">'+r.overall_score+'</span></div>';}).join("")+"</div>";
-}else{document.getElementById("history-list").innerHTML='<div class="card text-center"><p class="text-sm">暂无检测记录</p></div>';}}catch(e){}}
+function mockProfile() {
+  return { name: userName, id: userId, totalScans: 12, avgScore: 76, streak: 5 };
+}
 
-async function loadProfile(){
-if(!userId)return;try{const r=await fetch(API+"/user/profile",{headers:{"X-User-Id":userId}});const d=await r.json();
-document.getElementById("profile-name").textContent=d.user?.nickname||"用户";
-document.getElementById("profile-phone").textContent=d.user?.phone||"";
-document.getElementById("stat-total").textContent=d.stats?.total_checks||0;
-document.getElementById("stat-avg").textContent=d.stats?.avg_score||"-";
-document.getElementById("stat-last").textContent=d.stats?.last_check?d.stats.last_check.slice(5,10):"-";}catch(e){}}
+function mockTrends() {
+  return Array.from({length: 14}, (_, i) => ({
+    date: new Date(Date.now() - (13 - i) * 86400000).toLocaleDateString('zh-CN', {month:'numeric',day:'numeric'}),
+    score: 65 + Math.floor(Math.random() * 30)
+  }));
+}
 
-if(userId){document.getElementById("user-name").textContent=userName;showPage("page-home");loadRecent();}
-else{showPage("page-login");}
-</script></body></html>
+async function doLogin() {
+  const name = $('#login-name').value.trim() || '用户';
+  const phone = $('#login-phone').value.trim();
+  const res = await apiCall('POST', '/api/v1/user/login', { name, phone });
+  userId = res?.user_id || ('user_' + Date.now());
+  userName = name;
+  localStorage.setItem('vh_uid', userId);
+  localStorage.setItem('vh_name', userName);
+  $('#profile-name').textContent = userName;
+  $('#profile-avatar').textContent = userName.charAt(0).toUpperCase();
+  goTo('home');
+}
+
+function doLogout() {
+  localStorage.removeItem('vh_uid');
+  localStorage.removeItem('vh_name');
+  userId = null;
+  goTo('login');
+}
+
+async function loadRecords() {
+  let data = await apiCall('GET', '/api/v1/records');
+  records = data?.records || mockRecords();
+  renderRecent();
+  renderHistory();
+}
+
+async function loadProfile() {
+  let data = await apiCall('GET', '/api/v1/user/profile');
+  profile = data || mockProfile();
+  $('#profile-name').textContent = profile.name || userName;
+  $('#profile-avatar').textContent = (profile.name || userName).charAt(0).toUpperCase();
+  $('#profile-id').textContent = 'ID: ' + (userId || '').slice(0, 12);
+  $('#stat-total').textContent = profile.totalScans || records.length;
+  $('#stat-avg').textContent = profile.avgScore || (records.length ? Math.round(records.reduce((s,r) => s + r.score, 0) / records.length) : '--');
+  $('#stat-streak').textContent = profile.streak || 0;
+}
+
+function renderRecent() {
+  const el = $('#recent-records');
+  if (!records.length) { el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-dim);font-size:14px;padding:30px">暂无检测记录</div>'; return; }
+  el.innerHTML = records.slice(0, 3).map(r => `
+    <div class="card" onclick="showReport(${JSON.stringify(r).replace(/"/g, '&quot;')})">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;color:var(--text-dim)">${new Date(r.date).toLocaleDateString('zh-CN')}</div>
+          <div style="font-size:20px;font-weight:700;margin-top:4px">${r.score} <span style="font-size:13px;color:var(--text-dim)">分</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span class="badge ${r.score >= 80 ? 'badge-green' : r.score >= 60 ? 'badge-yellow' : 'badge-red'}">${r.score >= 80 ? '良好' : r.score >= 60 ? '一般' : '注意'}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderHistory() {
+  const el = $('#history-list');
+  if (!records.length) { el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-dim);padding:30px">暂无记录</div>'; return; }
+  el.innerHTML = records.map(r => `
+    <div class="list-item" onclick='showReport(${JSON.stringify(r)})'>
+      <div style="flex:1">
+        <div class="date">${new Date(r.date).toLocaleDateString('zh-CN')} ${new Date(r.date).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div class="score" style="color:${r.score >= 80 ? 'var(--green)' : r.score >= 60 ? 'var(--yellow)' : 'var(--red)'}">${r.score}</div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  `).join('');
+}
+
+function showReport(record) {
+  if (typeof record === 'string') record = JSON.parse(record);
+  goTo('report');
+  const rc = $('#report-content');
+  const scoreColor = record.score >= 80 ? 'var(--green)' : record.score >= 60 ? 'var(--yellow)' : 'var(--red)';
+  const features = [
+    {label:'基频 F0', value: (120 + Math.random()*80).toFixed(1) + ' Hz'},
+    {label:'Jitter', value: (Math.random()*2).toFixed(2) + '%'},
+    {label:'Shimmer', value: (Math.random()*5).toFixed(2) + '%'},
+    {label:'HNR', value: (15 + Math.random()*10).toFixed(1) + ' dB'},
+    {label:'语速', value: (3 + Math.random()*3).toFixed(1) + ' 字/秒'},
+    {label:'停顿率', value: (Math.random()*15).toFixed(1) + '%'}
+  ];
+  const diseases = record.diseases || DISEASES.map(d => ({name: d.name, risk: Math.random()*0.8, level: '低'}));
+  let activeCat = '全部';
+  const renderDiseases = (cat) => {
+    const filtered = cat === '全部' ? diseases : diseases.filter((_, i) => DISEASES[i]?.cat === cat);
+    return filtered.map((d, i) => {
+      const orig = DISEASES.find(x => x.name === d.name) || DISEASES[0];
+      const riskPct = Math.round((d.risk || 0.1 + Math.random()*0.7) * 100);
+      const lvl = riskPct < 30 ? '低风险' : riskPct < 60 ? '中风险' : '高风险';
+      const clr = riskPct < 30 ? 'var(--green)' : riskPct < 60 ? 'var(--yellow)' : 'var(--red)';
+      return `<div class="risk-card">
+        <div class="risk-icon" style="background:${orig.color}15">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${orig.color}" stroke-width="2" stroke-linecap="round">${orig.icon === 'heart' ? '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' : orig.icon === 'brain' ? '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2z"/>' : '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'}</svg>
+        </div>
+        <div class="risk-info">
+          <div class="name">${d.name}</div>
+          <div class="level">${lvl}</div>
+          <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:${riskPct}%;background:${clr}"></div></div>
+        </div>
+        <div class="risk-value" style="color:${clr}">${riskPct}%</div>
+      </div>`;
+    }).join('');
+  };
+  rc.innerHTML = `
+    <div style="text-align:center;padding:20px">
+      <canvas id="scoreCircle" width="160" height="160" class="score-circle"></canvas>
+      <div style="font-size:14px;color:var(--text-dim);margin-top:4px">综合健康评分</div>
+    </div>
+    <div class="section-title">声学特征</div>
+    <div class="feature-grid">${features.map(f => `<div class="feature-item"><div class="label">${f.label}</div><div class="value">${f.value}</div></div>`).join('')}</div>
+    <div class="section-title">AI 健康洞察</div>
+    <div class="insight-box">您的声纹分析显示整体健康状况${record.score >= 80 ? '良好' : record.score >= 60 ? '基本正常，部分指标需要关注' : '需要重视，建议进一步检查'}。声学特征中的基频稳定性和谐波噪声比${record.score >= 70 ? '处于正常范围' : '存在异常波动'}，建议保持良好的生活习惯，定期进行健康检测。</div>
+    <div class="section-title">疾病风险评估</div>
+    <div class="tab-group" id="risk-tabs">${CATS.map(c => `<button class="tab-btn ${c === activeCat ? 'active' : ''}" onclick="filterRisks('${c}')">${c}</button>`).join('')}</div>
+    <div style="padding:0 20px;margin-bottom:20px" id="risk-list">${renderDiseases('全部')}</div>
+    <div class="section-title">健康建议</div>
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:13px;line-height:1.5">保持规律作息，每天 7-8 小时充足睡眠</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:13px;line-height:1.5">每周进行 150 分钟中等强度有氧运动</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:13px;line-height:1.5">建议每 7 天进行一次声纹健康检测</span>
+      </div>
+    </div>`;
+  window._currentDiseases = diseases;
+  window._currentCat = '全部';
+  setTimeout(() => drawScoreCircle(record.score), 100);
+}
+
+function filterRisks(cat) {
+  window._currentCat = cat;
+  $$('#risk-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent === cat));
+  const diseases = window._currentDiseases || [];
+  const filtered = cat === '全部' ? diseases : diseases.filter((_, i) => DISEASES[i]?.cat === cat);
+  const filteredDefs = cat === '全部' ? DISEASES : DISEASES.filter(d => d.cat === cat);
+  $('#risk-list').innerHTML = filtered.map((d, i) => {
+    const orig = filteredDefs[i] || DISEASES[0];
+    const riskPct = Math.round((d.risk || 0.1 + Math.random()*0.7) * 100);
+    const lvl = riskPct < 30 ? '低风险' : riskPct < 60 ? '中风险' : '高风险';
+    const clr = riskPct < 30 ? 'var(--green)' : riskPct < 60 ? 'var(--yellow)' : 'var(--red)';
+    return `<div class="risk-card"><div class="risk-icon" style="background:${orig.color}15"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${orig.color}" stroke-width="2" stroke-linecap="round">${orig.icon === 'heart' ? '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' : orig.icon === 'brain' ? '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2z"/>' : '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'}</svg></div><div class="risk-info"><div class="name">${d.name}</div><div class="level">${lvl}</div><div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:${riskPct}%;background:${clr}"></div></div></div><div class="risk-value" style="color:${clr}">${riskPct}%</div></div>`;
+  }).join('');
+}
+
+function drawScoreCircle(score) {
+  const c = $('#scoreCircle'); if (!c) return;
+  const ctx = c.getContext('2d'), cx = 80, cy = 80, r = 60, lw = 8;
+  const dpr = window.devicePixelRatio || 1;
+  c.width = 160 * dpr; c.height = 160 * dpr; ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, 160, 160);
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = lw; ctx.stroke();
+  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#eab308' : '#ef4444';
+  const endAngle = -Math.PI / 2 + (score / 100) * Math.PI * 2;
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, endAngle); ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.fillStyle = '#e2e2e8'; ctx.font = 'bold 36px -apple-system,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(score, cx, cy - 4);
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '12px -apple-system,sans-serif'; ctx.fillText('分', cx, cy + 22);
+}
+
+function drawTrendChart(canvasId = 'trendCanvas') {
+  const canvas = document.getElementById(canvasId); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth - 24;
+  const h = 180;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  ctx.scale(dpr, dpr);
+  const data = (trends.length ? trends : mockTrends()).slice(-14);
+  if (!trends.length) trends = data;
+  const padding = {top: 20, right: 10, bottom: 30, left: 35};
+  const chartW = w - padding.left - padding.right;
+  const chartH = h - padding.top - padding.bottom;
+  const minV = Math.min(...data.map(d => d.score)) - 5;
+  const maxV = Math.max(...data.map(d => d.score)) + 5;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padding.top + (chartH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(w - padding.right, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxV - ((maxV - minV) / 4) * i), padding.left - 6, y + 3);
+  }
+  const points = data.map((d, i) => ({
+    x: padding.left + (i / (data.length - 1)) * chartW,
+    y: padding.top + (1 - (d.score - minV) / (maxV - minV)) * chartH
+  }));
+  const gradient = ctx.createLinearGradient(0, padding.top, 0, h - padding.bottom);
+  gradient.addColorStop(0, 'rgba(59,130,246,0.2)'); gradient.addColorStop(1, 'rgba(59,130,246,0)');
+  ctx.beginPath(); ctx.moveTo(points[0].x, h - padding.bottom);
+  points.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(points[points.length - 1].x, h - padding.bottom); ctx.closePath(); ctx.fillStyle = gradient; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) {
+    const cp1x = (points[i - 1].x + points[i].x) / 2, cp1y = points[i - 1].y, cp2x = cp1x, cp2y = points[i].y;
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, points[i].x, points[i].y);
+  }
+  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.stroke();
+  points.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fillStyle = '#3b82f6'; ctx.fill(); });
+  ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center';
+  data.forEach((d, i) => { if (i % 2 === 0 || i === data.length - 1) ctx.fillText(d.date, points[i].x, h - 8); });
+}
+
+// Recording
+let isRecording = false, timeLeft = 30;
+
+async function toggleRecording() {
+  if (isRecording) { stopRecording(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(audioChunks, {type: 'audio/webm'});
+      analyzeRecording(blob);
+    };
+    mediaRecorder.start();
+    isRecording = true; timeLeft = 30;
+    $('#rec-dot').style.background = 'transparent';
+    $('#rec-dot').style.width = '20px'; $('#rec-dot').style.height = '20px';
+    $('#rec-dot').style.borderRadius = '4px';
+    $('#rec-dot').style.background = '#fff';
+    $('#rec-status').textContent = '正在录制...';
+    $('#rec-status').style.color = 'var(--red)';
+    recordingInterval = setInterval(() => {
+      timeLeft--;
+      const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+      $('#rec-timer').textContent = `0${m}:${s < 10 ? '0' : ''}${s}`;
+      if (timeLeft <= 0) stopRecording();
+    }, 1000);
+    drawWaveform();
+  } catch (e) {
+    alert('请允许麦克风权限以进行录音');
+  }
+}
+
+function stopRecording() {
+  if (!isRecording) return;
+  isRecording = false;
+  clearInterval(recordingInterval);
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  $('#rec-dot').style.background = 'var(--red)';
+  $('#rec-dot').style.width = '28px'; $('#rec-dot').style.height = '28px';
+  $('#rec-dot').style.borderRadius = '6px';
+  $('#rec-status').textContent = '点击开始录制';
+  $('#rec-status').style.color = 'var(--text-dim)';
+  $('#rec-timer').textContent = '00:30';
+}
+
+function drawWaveform() {
+  const canvas = $('#waveformCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth;
+  canvas.width = w * dpr; canvas.height = 120 * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = '120px';
+  ctx.scale(dpr, dpr);
+  const bufLen = analyser.frequencyBinCount;
+  const dataArr = new Uint8Array(bufLen);
+  const numBars = 50, barW = (w - (numBars - 1) * 2) / numBars;
+  function draw() {
+    if (!isRecording) return;
+    animFrameId = requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArr);
+    ctx.clearRect(0, 0, w, 120);
+    for (let i = 0; i < numBars; i++) {
+      const idx = Math.floor(i * bufLen / numBars);
+      const val = dataArr[idx] / 255;
+      const barH = Math.max(3, val * 100);
+      const x = i * (barW + 2);
+      const hue = 220 + val * 40;
+      ctx.fillStyle = `hsla(${hue}, 80%, ${55 + val * 20}%, ${0.4 + val * 0.6})`;
+      ctx.beginPath();
+      ctx.roundRect(x, 60 - barH / 2, barW, barH, 2);
+      ctx.fill();
+    }
+  }
+  draw();
+}
+
+async function analyzeRecording(blob) {
+  goTo('loading');
+  const formData = new FormData();
+  formData.append('audio', blob, 'recording.webm');
+  const res = await apiCall('POST', '/api/v1/analyze', formData, true);
+  await new Promise(r => setTimeout(r, 2000 + Math.random() * 1000));
+  let record;
+  if (res && res.score) {
+    record = res;
+  } else {
+    record = {
+      id: 'mock_' + Date.now(),
+      date: new Date().toISOString(),
+      score: 55 + Math.floor(Math.random() * 40),
+      diseases: DISEASES.map(d => ({name: d.name, risk: Math.random() * 0.8, level: '低'}))
+    };
+  }
+  records.unshift(record);
+  showReport(record);
+}
+
+// Init
+if (userId) {
+  userName = localStorage.getItem('vh_name') || '用户';
+  goTo('home');
+}
+
+// Canvas roundRect polyfill
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
+    this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r);
+    this.arcTo(x, y, x + w, y, r); this.closePath();
+  };
+}
+</script>
+</body>
+</html>

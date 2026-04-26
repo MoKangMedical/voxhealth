@@ -1,144 +1,152 @@
-# 🔊 VoxHealth
+# VoxHealth
 
-> 语音生物标志物AI平台 — 30秒语音，25种疾病早筛
+> Voice Biomarker AI Platform -- 30s Voice, 25 Disease Early Screening
 
 [![Python](https://img.shields.io/badge/python-3.9+-green.svg)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-teal.svg)]()
-[![Version](https://img.shields.io/badge/v0.2-blue.svg)]()
+[![Version](https://img.shields.io/badge/v0.3-blue.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-orange.svg)]()
 
-## 一句话定义
+## What It Does
 
-**VoxHealth 不卖语音分析工具，卖健康筛查结果。** 对着手机说30秒话 → AI分析61维声学特征 → 输出25种疾病的风险评估报告。
+**VoxHealth sells health screening results, not voice analysis tools.** Speak for 30 seconds -> AI analyzes 59 acoustic features -> outputs risk assessment for 25 diseases.
 
-> 💡 核心理念：声音携带丰富的健康信息——语速、音调、颤抖、停顿，这些细微变化在疾病症状出现前就已出现。VoxHealth让每个人都能获得"声学体检"。
-
----
-
-## 🎯 解决什么问题
-
-| 痛点 | 传统体检 | VoxHealth |
-|------|---------|-----------|
-| 频率 | 每年1-2次 | **随时可测** |
-| 侵入性 | 抽血/影像 | **完全非侵入** |
-| 延迟 | 等报告数天 | **秒级出结果** |
-| 费用 | 数百至数千元 | **免费** |
-| 覆盖 | 单一指标 | **25种疾病同步筛查** |
+> Core concept: Voice carries rich health information -- speech rate, pitch, tremor, pauses. These subtle changes appear before disease symptoms. VoxHealth gives everyone a "voice checkup".
 
 ---
 
-## 🏗️ 系统架构
+## Problem We Solve
+
+| Pain Point | Traditional Checkup | VoxHealth |
+|-----------|-------------------|-----------|
+| Frequency | 1-2x per year | **Anytime** |
+| Invasiveness | Blood draw/Imaging | **Non-invasive** |
+| Latency | Days for results | **Seconds** |
+| Cost | Hundreds to thousands | **Free** |
+| Coverage | Single indicator | **25 diseases at once** |
+
+---
+
+## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                  VoxHealth v0.2 (C端完整版)                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  📱 用户层                                                   │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                   │
-│  │ Web H5   │  │ 微信小程序│  │ API对接  │                   │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘                   │
-│       └─────────────┼─────────────┘                         │
-│                     ▼                                       │
-│  🌐 API层 (FastAPI)                                         │
-│  ┌─────────────────────────────────────────────────┐       │
-│  │  /api/v1/analyze    — 语音检测 + AI解读           │       │
-│  │  /api/v1/records    — 历史记录查询                │       │
-│  │  /api/v1/trends     — 健康趋势分析                │       │
-│  │  /api/v1/user       — 用户注册/登录/档案           │       │
-│  │  /api/v1/stats      — 用户统计面板                │       │
-│  └─────────────────────────────────────────────────┘       │
-│                     ▼                                       │
-│  🧠 AI引擎层                                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                   │
-│  │ 声学特征  │  │ 疾病检测  │  │ MIMO AI  │                   │
-│  │ 61维向量  │  │ 25种疾病  │  │ 健康解读  │                   │
-│  └──────────┘  └──────────┘  └──────────┘                   │
-│                     ▼                                       │
-│  💾 数据层 (SQLite)                                          │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                   │
-│  │ 用户档案  │  │ 健康记录  │  │ 趋势数据  │                   │
-│  └──────────┘  └──────────┘  └──────────┘                   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------+
+|                  VoxHealth v0.3                            |
++-----------------------------------------------------------+
+|  User Layer                                                |
+|  [Web H5]  [WeChat Mini]  [API Integration]               |
+|       +-----------+-----------+                            |
+|                   v                                        |
+|  API Layer (FastAPI)                                      |
+|  /api/v1/analyze   -- Voice detection + AI insight         |
+|  /api/v1/records   -- History query                       |
+|  /api/v1/trends    -- Health trend analysis               |
+|  /api/v1/user      -- Register/Login/Profile              |
+|  /api/v1/stats     -- User statistics                     |
+|                   v                                        |
+|  AI Engine Layer                                           |
+|  [Acoustic Features]  [Disease Detection]  [MIMO AI]      |
+|  [59-dim vector]      [25 diseases]        [Health Insight]|
+|                   v                                        |
+|  Data Layer (SQLite)                                      |
+|  [User Profiles]  [Health Records]  [Trend Data]          |
++-----------------------------------------------------------+
 ```
 
 ---
 
-## 🔬 声学特征引擎
+## Acoustic Feature Engine
 
-61维声学特征向量，覆盖语音生物标志物全谱：
+59-dimensional acoustic feature vector covering the full spectrum of voice biomarkers:
 
-| 特征类别 | 维度 | 关键指标 |
-|---------|------|---------|
-| MFCC | 26 | 语音频谱包络 |
-| 基频(F0) | 6 | 音调、变异、范围 |
-| Jitter/Shimmer | 6 | 声带振动稳定性 |
-| HNR | 2 | 谐波噪声比 |
-| 频谱特征 | 6 | 质心、带宽、平坦度 |
-| 韵律特征 | 9 | 语速、停顿、节奏 |
-| 共振峰 | 4 | F1-F4，声道形状 |
-| 能量特征 | 2 | RMS能量及其变异 |
-
----
-
-## 🏥 检测覆盖（25种）
-
-| 类别 | 疾病 |
-|------|------|
-| 心理健康(5) | 抑郁、焦虑、倦怠、压力、社交孤立 |
-| 认知退行(4) | 帕金森、阿尔茨海默、轻度认知障碍、老年衰弱 |
-| 呼吸系统(3) | 慢阻肺、哮喘、呼吸窘迫 |
-| 心血管(2) | 高血压、心衰 |
-| 代谢疾病(2) | 2型糖尿病、甲状腺异常 |
-| 健康状态(9) | 睡眠、疲劳、酒精、疼痛、情绪、嗓音、听力、认知负荷、自闭谱系 |
+| Feature Category | Dimensions | Key Indicators |
+|-----------------|-----------|---------------|
+| MFCC | 26 | Spectral envelope |
+| Fundamental Frequency (F0) | 6 | Pitch, variation, range |
+| Jitter/Shimmer | 6 | Vocal fold vibration stability |
+| HNR | 2 | Harmonic-to-noise ratio |
+| Spectral Features | 6 | Centroid, bandwidth, flatness |
+| Prosodic Features | 9 | Speech rate, pauses, rhythm |
+| Formants | 4 | F1-F4, vocal tract shape |
+| Energy Features | 2 | RMS energy and variation |
 
 ---
 
-## 🤖 AI健康解读
+## Detection Coverage (25 Diseases)
 
-集成小米MIMO API，为每次检测生成个性化健康解读：
-- 温暖的语气，不吓人
-- 具体可行的建议
-- 不做医学诊断，始终提醒仅供参考
+| Category | Diseases |
+|----------|---------|
+| Mental Health (5) | Depression, Anxiety, Burnout, Stress, Social Isolation |
+| Cognitive Decline (4) | Parkinson's, Alzheimer's, MCI, Frailty |
+| Respiratory (3) | COPD, Asthma, Respiratory Distress |
+| Cardiovascular (2) | Hypertension, Heart Failure |
+| Metabolic (2) | Type 2 Diabetes, Thyroid Disorders |
+| Health States (9) | Sleep, Fatigue, Alcohol, Pain, Emotion, Voice, Hearing, Cognitive Load, Autism Spectrum |
 
 ---
 
-## 🚀 快速开始
+## AI Health Insights
+
+Integrated with Xiaomi MIMO API, generating personalized health insights for each detection:
+- Warm tone, non-alarming
+- Specific actionable advice
+- Not a medical diagnosis, always reminds for reference only
+
+---
+
+## Quick Start
 
 ```bash
 git clone https://github.com/MoKangMedical/voxhealth.git
 cd voxhealth
 pip install -r requirements.txt
-bash scripts/deploy.sh
-# 访问 http://localhost:8100
+python3 -m src.api.main
+# Visit http://localhost:8100
 ```
+
+### Docker Deployment
+
+```bash
+docker-compose up -d
+# Visit http://localhost:8100
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| VOXHEALTH_PORT | 8100 | Server port |
+| VOXHEALTH_HOST | 0.0.0.0 | Server host |
+| MIMO_API_KEY | (empty) | Xiaomi MIMO API key |
+| MIMO_BASE_URL | https://api.xiaomimimo.com/v1 | MIMO API base URL |
+| VOXHEALTH_DB | data/voxhealth.db | SQLite database path |
 
 ---
 
-## 🔬 Harness理论
+## Harness Theory
 
-VoxHealth 的核心竞争力是**健康检测Harness**设计：
+VoxHealth's core competitive advantage is the **Health Detection Harness** design:
 
 ```
-健康Harness = 声学特征提取 + 疾病风险模型 + AI解读生成 + 用户体验设计
+Health Harness = Acoustic Feature Extraction + Disease Risk Models + AI Insight Generation + UX Design
 ```
 
-- 同样的语音数据，不同的Harness → 检测准确度差异显著
-- 我们的Harness编码了声学医学研究的最佳实践
-- 模型权重可以开源，Harness设计是私有的
+- Same voice data, different Harness -> significant detection accuracy differences
+- Our Harness encodes best practices from acoustic medical research
+- Model weights can be open-sourced, Harness design is proprietary
 
 ---
 
-## 💼 红杉叙事
+## Tech Stack
 
-> **卖健康筛查结果，不卖语音分析工具。**
-
-- 用户不理解MFCC和Jitter是什么
-- 用户只关心："我的健康有没有问题？"
-- VoxHealth = 声音 → 健康洞察（30秒内完成）
+- **Backend**: Python 3.9+, FastAPI, SQLite
+- **Frontend**: Vanilla JS, Canvas API, Web Audio API
+- **AI**: Xiaomi MIMO API (health insight generation)
+- **Audio**: librosa, soundfile, numpy
+- **Deployment**: Docker, uvicorn
 
 ---
 
-## 📄 License
+## License
 
 MIT License

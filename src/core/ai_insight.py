@@ -1,8 +1,8 @@
 """
-VoxHealth — MIMO AI 健康解读引擎
+VoxHealth -- MIMO AI Health Insight Engine
 
-调用小米MIMO API，为用户的语音检测结果生成
-个性化的、温暖的、可操作的健康解读。
+Calls Xiaomi MIMO API to generate personalized,
+warm, actionable health insights from voice detection results.
 """
 
 import os
@@ -10,144 +10,159 @@ import httpx
 import json
 from typing import Dict, List, Optional
 
-MIMO_API_KEY = os.getenv("MIMO_API_KEY", "sk-ccwzuzw9e1t42xjok84nfx7wrv4geuzc590ojipwfqga5uxl")
+MIMO_API_KEY = os.getenv("MIMO_API_KEY", "")
 MIMO_BASE_URL = os.getenv("MIMO_BASE_URL", "https://api.xiaomimimo.com/v1")
+MIMO_MODEL = os.getenv("MIMO_MODEL", "mimo-v2.5-pro")
 
 
 class HealthInsightGenerator:
     """
-    AI健康解读生成器
+    AI Health Insight Generator
 
-    将冰冷的检测数据转化为温暖的健康建议
+    Transforms cold detection data into warm health advice
     """
 
     def __init__(self, api_key: str = MIMO_API_KEY, base_url: str = MIMO_BASE_URL):
         self.api_key = api_key
         self.base_url = base_url
 
-    async def generate_insight(self, report: dict, user_name: str = "您") -> str:
+    async def generate_insight(self, report: dict, user_name: str = "you") -> str:
         """
-        根据健康报告生成AI解读
+        Generate AI insight from health report
 
         Args:
-            report: 完整健康报告dict
-            user_name: 用户称呼
+            report: Full health report dict
+            user_name: User name for personalization
 
         Returns:
-            自然语言健康解读
+            Natural language health insight
         """
-        # 提取关键信息
-        overall = report.get("overall_risk_level", "正常")
+        overall = report.get("overall_risk_level", "normal")
         score = report.get("overall_score", 0)
         diseases = report.get("diseases", [])
         features = report.get("feature_summary", {})
 
-        # 高风险疾病
-        high_risks = [d for d in diseases if d.get("risk_level") == "高"]
-        medium_risks = [d for d in diseases if d.get("risk_level") == "中"]
+        high_risks = [d for d in diseases if d.get("risk_level") == "high"]
+        medium_risks = [d for d in diseases if d.get("risk_level") == "medium"]
 
-        # 构建prompt
-        system_prompt = """你是一位温暖且专业的健康顾问AI。
-你的任务是根据语音生物标志物检测结果，为用户提供个性化的健康解读。
-语气要温暖、不吓人、给出具体可行的建议。
-不要做医学诊断，始终提醒用户这仅供参考。
-回复长度：150-250字，用中文。"""
+        system_prompt = """You are a warm and professional health advisor AI.
+Your task is to provide personalized health insights based on voice biomarker detection results.
+Be warm, non-alarming, and give specific actionable advice.
+Do NOT make medical diagnoses. Always remind users this is for reference only.
+Reply in 150-250 characters, in Chinese."""
 
-        user_prompt = f"""用户{user_name}的语音健康检测结果：
+        user_prompt = f"""User {user_name} voice health detection results:
 
-总体评估：{overall}（评分 {score}/100）
+Overall: {overall} (Score {score}/100)
 
-声学特征：
+Acoustic Features:
 {chr(10).join(f'- {k}: {v}' for k, v in features.items())}
 
-检测到的疾病风险：
+Detected Disease Risks:
 """
         for d in diseases[:8]:
-            level_emoji = {"高": "🔴", "中": "🟡", "低": "🟢"}.get(d.get("risk_level", ""), "⚪")
-            user_prompt += f"- {level_emoji} {d['disease']}: {d.get('risk_score', 0)}分 ({d.get('risk_level', '')}) - 关键标志: {', '.join(d.get('key_markers', [])[:2])}\n"
+            level = {"high": "HIGH", "medium": "MED", "low": "LOW"}.get(d.get("risk_level", ""), "?")
+            user_prompt += f"- [{level}] {d['disease']}: {d['risk_score']:.0f}/100\n"
 
-        if high_risks:
-            user_prompt += f"\n重点关注：{', '.join(d['disease'] for d in high_risks)}\n"
-
-        user_prompt += "\n请为用户生成一段温暖、专业的健康解读和建议。"
+        if not self.api_key:
+            return self._fallback_insight(report)
 
         try:
             async with httpx.AsyncClient(timeout=30) as client:
                 resp = await client.post(
                     f"{self.base_url}/chat/completions",
-                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
                     json={
-                        "model": "mimo-v2-pro",
+                        "model": MIMO_MODEL,
                         "messages": [
                             {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_prompt}
+                            {"role": "user", "content": user_prompt},
                         ],
                         "temperature": 0.7,
-                        "max_tokens": 500
-                    }
+                        "max_tokens": 500,
+                    },
                 )
+                resp.raise_for_status()
                 data = resp.json()
-                return data["choices"][0]["message"]["content"]
+                return data["choices"][0]["message"]["content"].strip()
         except Exception as e:
-            return self._fallback_insight(report, user_name)
+            print(f"[VoxHealth] MIMO API error: {e}")
+            return self._fallback_insight(report)
 
-    async def generate_trend_summary(self, trends: dict, user_name: str = "您") -> str:
-        """生成趋势总结"""
-        if not trends:
-            return f"{user_name}目前还没有足够的历史数据来生成趋势分析。建议定期检测，积累数据后可以看到变化趋势。"
-
-        system_prompt = "你是一位健康数据分析AI。根据用户的健康趋势数据，生成简短的趋势总结（100字内）。"
-
-        trend_text = ""
-        for metric, points in list(trends.items())[:5]:
-            if len(points) >= 2:
-                change = points[-1]["value"] - points[0]["value"]
-                direction = "上升↑" if change > 0 else "下降↓"
-                trend_text += f"- {metric}: {direction} ({points[0]['value']:.0f}→{points[-1]['value']:.0f})\n"
-
-        user_prompt = f"{user_name}的健康趋势数据（最近30天）：\n{trend_text}\n请生成趋势总结。"
-
-        try:
-            async with httpx.AsyncClient(timeout=20) as client:
-                resp = await client.post(
-                    f"{self.base_url}/chat/completions",
-                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": "mimo-v2-pro",
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_prompt}
-                        ],
-                        "temperature": 0.5,
-                        "max_tokens": 300
-                    }
-                )
-                data = resp.json()
-                return data["choices"][0]["message"]["content"]
-        except:
-            return "趋势分析暂时不可用，请稍后重试。"
-
-    def _fallback_insight(self, report: dict, user_name: str) -> str:
-        """备用解读（API不可用时）"""
-        overall = report.get("overall_risk_level", "正常")
+    def _fallback_insight(self, report: dict) -> str:
+        """Fallback insight when API is unavailable"""
+        overall = report.get("overall_risk_level", "normal")
+        score = report.get("overall_score", 0)
         diseases = report.get("diseases", [])
-        high_risks = [d for d in diseases if d.get("risk_level") == "高"]
-        medium_risks = [d for d in diseases if d.get("risk_level") == "中"]
+        high_risks = [d for d in diseases if d.get("risk_level") == "high"]
+        medium_risks = [d for d in diseases if d.get("risk_level") == "medium"]
 
-        insight = f"{user_name}，您好！\n\n"
-        insight += f"您的语音健康评估结果为「{overall}」。"
+        parts = []
+        if overall == "normal":
+            parts.append("Your voice analysis shows overall good health status.")
+        elif overall == "slight attention":
+            parts.append("Your voice analysis shows some indicators that need attention.")
+        else:
+            parts.append("Your voice analysis shows some areas that need attention.")
 
         if high_risks:
-            names = "、".join(d["disease"] for d in high_risks[:3])
-            insight += f"\n\n⚠️ 需要关注：{names}。建议您关注这些指标的变化，如有不适请咨询专业医生。"
-        elif medium_risks:
-            names = "、".join(d["disease"] for d in medium_risks[:3])
-            insight += f"\n\n💡 轻微关注：{names}。这些指标处于中等水平，建议定期检测观察趋势。"
-        else:
-            insight += "\n\n✅ 各项指标均在正常范围内，请继续保持健康的生活方式。"
+            names = ", ".join(d["disease"] for d in high_risks[:2])
+            parts.append(f"Key areas: {names} show higher risk levels, recommend professional consultation.")
+        if medium_risks:
+            names = ", ".join(d["disease"] for d in medium_risks[:2])
+            parts.append(f"{names} are at moderate levels, recommend regular monitoring.")
 
-        insight += "\n\n📌 此报告基于AI语音分析，仅供参考，不构成医学诊断。"
-        return insight
+        parts.append("This report is for reference only, not a medical diagnosis.")
+        return " ".join(parts)
+
+    async def generate_trend_summary(self, trends: dict, user_name: str = "you") -> str:
+        """Generate trend analysis summary"""
+        if not trends:
+            return "No trend data available yet. Continue recording to build your health timeline."
+
+        if not self.api_key:
+            return self._fallback_trend(trends)
+
+        trend_text = ""
+        for disease, points in trends.items():
+            if len(points) >= 2:
+                recent = points[-1]["value"]
+                prev = points[-2]["value"]
+                direction = "up" if recent > prev else "down"
+                trend_text += f"- {disease}: {prev:.0f} -> {recent:.0f} ({direction})\n"
+
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post(
+                    f"{self.base_url}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": MIMO_MODEL,
+                        "messages": [
+                            {"role": "system", "content": "Analyze health trends and provide a brief summary in Chinese, 100-150 chars."},
+                            {"role": "user", "content": f"User {user_name} health trends:\n{trend_text}"},
+                        ],
+                        "temperature": 0.7,
+                        "max_tokens": 300,
+                    },
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return data["choices"][0]["message"]["content"].strip()
+        except Exception:
+            return self._fallback_trend(trends)
+
+    def _fallback_trend(self, trends: dict) -> str:
+        """Fallback trend summary"""
+        count = sum(len(v) for v in trends.values())
+        diseases = len(trends)
+        return f"Tracked {count} data points across {diseases} health indicators. Continue regular testing for better trend analysis."
 
 
 insight_generator = HealthInsightGenerator()
