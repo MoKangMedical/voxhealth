@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API文档 — VoiceHealth</title>
+<meta name="description" content="VoiceHealth REST API文档：端点列表、请求响应示例、SDK代码、认证方式与限流策略">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg-card:#12121a;--bg-card-hover:#1a1a28;
+  --purple:#6c5ce7;--purple-light:#a29bfe;--purple-glow:rgba(108,92,231,0.3);
+  --text:#e8e8f0;--text-muted:#8888a8;--text-dim:#5a5a7a;
+  --border:rgba(108,92,231,0.15);--border-light:rgba(255,255,255,0.06);
+  --success:#00b894;--warning:#fdcb6e;--danger:#e17055;--info:#74b9ff;
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;font-weight:600;line-height:1.3}
+code,pre{font-family:'JetBrains Mono','Fira Code',monospace}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:700;font-size:16px;font-family:'Space Grotesk',sans-serif}
+.nav-links{display:flex;gap:4px;align-items:center}
+.nav-links a{color:var(--text-muted);text-decoration:none;font-size:13px;padding:7px 14px;border-radius:8px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:#fff;background:rgba(108,92,231,0.12)}
+.nav-links a.active{color:#fff;background:rgba(108,92,231,0.18)}
+.nav-cta{background:linear-gradient(135deg,var(--purple),#8b5cf6);color:#fff;padding:7px 18px;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none}
+
+/* HERO */
+.hero{padding:140px 2rem 60px;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(108,92,231,0.12) 0%,transparent 60%)}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);margin-bottom:16px;color:#fff}
+.hero p{font-size:1.1rem;color:var(--text-muted);max-width:640px;margin:0 auto}
+
+/* LAYOUT */
+.layout{display:flex;max-width:1200px;margin:0 auto;padding:0 2rem 4rem;gap:2rem}
+.sidebar{width:220px;flex-shrink:0;position:sticky;top:80px;align-self:flex-start}
+.main{flex:1;min-width:0}
+
+/* SIDEBAR */
+.sidebar-nav{list-style:none}
+.sidebar-nav li{margin-bottom:2px}
+.sidebar-nav a{
+  display:block;padding:8px 14px;color:var(--text-muted);text-decoration:none;
+  font-size:0.88rem;border-radius:8px;transition:all .2s;
+}
+.sidebar-nav a:hover{color:#fff;background:rgba(108,92,231,0.1)}
+.sidebar-nav a.active{color:#fff;background:rgba(108,92,231,0.15);font-weight:500}
+.sidebar-title{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);padding:16px 14px 6px;font-weight:600}
+
+/* SECTIONS */
+.section{margin-bottom:3rem}
+.section h2{font-size:1.5rem;color:#fff;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.section h3{font-size:1.1rem;color:#fff;margin:24px 0 10px}
+.section p{color:var(--text-muted);font-size:0.95rem;margin-bottom:12px}
+
+/* ENDPOINT */
+.endpoint{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:20px;overflow:hidden;
+}
+.endpoint-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-light)}
+.method{
+  display:inline-block;padding:3px 10px;border-radius:6px;font-size:0.78rem;
+  font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:0.03em;
+}
+.method-get{background:rgba(0,184,148,0.15);color:var(--success)}
+.method-post{background:rgba(108,92,231,0.15);color:var(--purple-light)}
+.method-put{background:rgba(253,203,110,0.15);color:var(--warning)}
+.method-delete{background:rgba(225,112,85,0.15);color:var(--danger)}
+.endpoint-path{font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:#fff}
+.endpoint-desc{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.endpoint-body{padding:20px}
+.endpoint-body p{margin-bottom:10px}
+
+/* PARAMS TABLE */
+.params-table{width:100%;border-collapse:collapse;margin:12px 0}
+.params-table th{text-align:left;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);padding:8px 12px;border-bottom:1px solid var(--border)}
+.params-table td{padding:8px 12px;border-bottom:1px solid var(--border-light);font-size:0.88rem}
+.params-table td code{background:rgba(108,92,231,0.1);color:var(--purple-light);padding:2px 6px;border-radius:4px;font-size:0.82rem}
+.params-table .type{color:var(--info);font-size:0.82rem}
+.params-table .required{color:var(--danger);font-size:0.78rem;font-weight:600}
+
+/* CODE BLOCK */
+.code-block{background:#0d0d14;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:12px 0}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;background:rgba(108,92,231,0.06);border-bottom:1px solid var(--border-light);
+}
+.code-header span{font-size:0.78rem;color:var(--text-dim);font-weight:500}
+.code-tabs{display:flex;gap:2px}
+.code-tab{
+  padding:4px 12px;font-size:0.75rem;color:var(--text-muted);background:transparent;
+  border:1px solid transparent;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;
+}
+.code-tab.active{color:#fff;background:rgba(108,92,231,0.15);border-color:var(--border)}
+pre{padding:16px;overflow-x:auto;font-size:0.82rem;line-height:1.6;color:var(--text)}
+pre .kw{color:var(--purple-light)}
+pre .str{color:var(--success)}
+pre .num{color:var(--warning)}
+pre .cmt{color:var(--text-dim)}
+pre .fn{color:var(--info)}
+
+/* AUTH/TABLE */
+.info-box{
+  padding:16px 20px;border-radius:10px;margin:12px 0;
+}
+.info-box.info{background:rgba(116,185,255,0.08);border:1px solid rgba(116,185,255,0.2)}
+.info-box.warning{background:rgba(253,203,110,0.08);border:1px solid rgba(253,203,110,0.2)}
+.info-box h4{font-size:0.9rem;margin-bottom:6px}
+.info-box p{font-size:0.88rem;margin-bottom:0}
+
+/* ERROR CODES */
+.error-codes{list-style:none}
+.error-code{display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--border-light);align-items:center}
+.error-code:last-child{border-bottom:none}
+.error-code .code{font-family:'JetBrains Mono',monospace;font-weight:600;min-width:50px;color:var(--danger)}
+.error-code .msg{color:var(--text-muted);font-size:0.9rem}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem;margin-top:4rem;text-align:center;color:var(--text-dim);font-size:0.85rem}
+.footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.footer-links a{color:var(--text-muted);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--purple-light)}
+
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;position:static;display:flex;gap:4px;overflow-x:auto;padding-bottom:1rem}
+  .sidebar-nav{display:flex;gap:4px}
+  .sidebar-title{display:none}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="url(#ng1)" stroke-width="2.5"/><path d="M10 16h12M16 10v12" stroke="url(#ng1)" stroke-width="2.5" stroke-linecap="round"/><defs><linearGradient id="ng1" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#818cf8"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs></svg>
+    <span style="background:linear-gradient(135deg,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent">VoiceHealth</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">首页</a>
+    <a href="features.html">功能</a>
+    <a href="cases.html">案例</a>
+    <a href="api.html" class="active">API</a>
+    <a href="pricing.html">定价</a>
+    <a href="quickstart.html">快速开始</a>
+  </div>
+  <a class="nav-cta" href="https://github.com/VoiceHealth — ./voicehealth">GitHub</a>
+</nav>
+
+<section class="hero">
+  <h1>API 文档</h1>
+  <p>VoiceHealth REST API 完整参考文档，支持语音健康分析、报告生成与用户管理</p>
+</section>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-title">概览</div>
+    <ul class="sidebar-nav">
+      <li><a href="#overview">API 概览</a></li>
+      <li><a href="#auth">认证方式</a></li>
+      <li><a href="#base-url">Base URL</a></li>
+    </ul>
+    <div class="sidebar-title">端点</div>
+    <ul class="sidebar-nav">
+      <li><a href="#ep-health">健康分析</a></li>
+      <li><a href="#ep-batch">批量分析</a></li>
+      <li><a href="#ep-report">报告查询</a></li>
+      <li><a href="#ep-user">用户管理</a></li>
+    </ul>
+    <div class="sidebar-title">参考</div>
+    <ul class="sidebar-nav">
+      <li><a href="#rate-limit">限流策略</a></li>
+      <li><a href="#errors">错误码</a></li>
+      <li><a href="#sdks">SDK 示例</a></li>
+    </ul>
+  </aside>
+
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="section" id="overview">
+      <h2>API 概览</h2>
+      <p>VoiceHealth API 是一套 RESTful 接口，支持通过语音样本进行健康风险评估。所有端点均返回 JSON 格式响应，使用标准 HTTP 状态码，并通过 Bearer Token 进行身份认证。</p>
+      <p>API 遵循 REST 规范，支持 JSON 请求体和响应体。所有时间戳使用 ISO 8601 格式 (UTC)。</p>
+    </div>
+
+    <!-- AUTH -->
+    <div class="section" id="auth">
+      <h2>认证方式</h2>
+      <p>所有 API 请求必须在 HTTP Header 中携带 API Key 进行身份认证：</p>
+      <div class="code-block">
+        <div class="code-header"><span>HTTP Header</span></div>
+        <pre>Authorization: Bearer vh_live_xxxxxxxxxxxxxxxxxxxx
+Content-Type: application/json</pre>
+      </div>
+      <div class="info-box info">
+        <h4>获取 API Key</h4>
+        <p>登录 <a href="https://mokangmedical.github.io/voicehealth/" style="color:var(--info)">VoiceHealth Dashboard</a>，在 "设置 &gt; API 密钥" 中生成。密钥前缀区分环境：<code>vh_live_</code> 为生产环境，<code>vh_test_</code> 为测试环境。</p>
+      </div>
+      <div class="info-box warning">
+        <h4>安全提醒</h4>
+        <p>请勿在客户端代码或公开仓库中暴露 API Key。建议通过后端代理转发请求。如发现密钥泄露，请立即在 Dashboard 中轮换。</p>
+      </div>
+    </div>
+
+    <!-- BASE URL -->
+    <div class="section" id="base-url">
+      <h2>Base URL</h2>
+      <div class="code-block">
+        <div class="code-header"><span>Production</span></div>
+        <pre>https://api.voicehealth.mokangmedical.com/v1</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span>Sandbox</span></div>
+        <pre>https://sandbox-api.voicehealth.mokangmedical.com/v1</pre>
+      </div>
+    </div>
+
+    <!-- ENDPOINT: Health Analysis -->
+    <div class="section" id="ep-health">
+      <h2>健康分析</h2>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="method method-post">POST</span>
+          <span class="endpoint-path">/analysis/health</span>
+          <span class="endpoint-desc">上传语音样本进行健康分析</span>
+        </div>
+        <div class="endpoint-body">
+          <h3>请求参数</h3>
+          <table class="params-table">
+            <thead><tr><th>参数</th><th>类型</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>audio</code> <span class="required">必填</span></td><td class="type">file</td><td>语音文件，支持 WAV/MP3/FLAC，最大 10MB，建议 16kHz 采样率</td></tr>
+              <tr><td><code>language</code></td><td class="type">string</td><td>语言代码，默认 <code>zh-CN</code></td></tr>
+              <tr><td><code>metrics</code></td><td class="type">string[]</td><td>指定分析维度，如 <code>["respiratory","cardiovascular"]</code>，不填则全量分析</td></tr>
+              <tr><td><code>callback_url</code></td><td class="type">string</td><td>异步回调 URL，分析完成后 POST 结果至此地址</td></tr>
+            </tbody>
+          </table>
+
+          <h3>请求示例</h3>
+          <div class="code-block">
+            <div class="code-header"><span>cURL</span></div>
+            <pre><span class="kw">curl</span> -X POST https://api.voicehealth.mokangmedical.com/v1/analysis/health \
+  -H <span class="str">"Authorization: Bearer vh_live_xxxx"</span> \
+  -F <span class="str">"audio=@recording.wav"</span> \
+  -F <span class="str">"language=zh-CN"</span> \
+  -F <span class="str">'metrics=["respiratory","cardiovascular","mental"]'</span></pre>
+          </div>
+
+          <h3>响应示例 <span style="color:var(--success);font-size:0.82rem">200 OK</span></h3>
+          <div class="code-block">
+            <div class="code-header"><span>JSON</span></div>
+            <pre>{
+  <span class="str">"status"</span>: <span class="str">"completed"</span>,
+  <span class="str">"analysis_id"</span>: <span class="str">"ana_8f3k2j1m"</span>,
+  <span class="str">"timestamp"</span>: <span class="str">"2025-04-28T12:00:00Z"</span>,
+  <span class="str">"duration_ms"</span>: <span class="num">2847</span>,
+  <span class="str">"results"</span>: {
+    <span class="str">"respiratory"</span>: {
+      <span class="str">"risk_level"</span>: <span class="str">"low"</span>,
+      <span class="str">"score"</span>: <span class="num">0.12</span>,
+      <span class="str">"details"</span>: {
+        <span class="str">"asthma_risk"</span>: <span class="num">0.08</span>,
+        <span class="str">"copd_risk"</span>: <span class="num">0.05</span>,
+        <span class="str">"breathing_pattern"</span>: <span class="str">"normal"</span>
+      }
+    },
+    <span class="str">"cardiovascular"</span>: {
+      <span class="str">"risk_level"</span>: <span class="str">"medium"</span>,
+      <span class="str">"score"</span>: <span class="num">0.45</span>,
+      <span class="str">"details"</span>: {
+        <span class="str">"stress_markers"</span>: <span class="num">0.52</span>,
+        <span class="str">"hypertension_risk"</span>: <span class="num">0.38</span>
+      }
+    },
+    <span class="str">"mental"</span>: {
+      <span class="str">"risk_level"</span>: <span class="str">"low"</span>,
+      <span class="str">"score"</span>: <span class="num">0.18</span>,
+      <span class="str">"details"</span>: {
+        <span class="str">"depression_screen"</span>: <span class="num">0.15</span>,
+        <span class="str">"anxiety_screen"</span>: <span class="num">0.21</span>
+      }
+    }
+  },
+  <span class="str">"acoustic_features"</span>: {
+    <span class="str">"jitter"</span>: <span class="num">0.012</span>,
+    <span class="str">"shimmer"</span>: <span class="num">0.045</span>,
+    <span class="str">"hnr_db"</span>: <span class="num">18.3</span>,
+    <span class="str">"fundamental_freq_hz"</span>: <span class="num">142.5</span>
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENDPOINT: Batch -->
+    <div class="section" id="ep-batch">
+      <h2>批量分析</h2>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="method method-post">POST</span>
+          <span class="endpoint-path">/analysis/batch</span>
+          <span class="endpoint-desc">批量提交多个语音样本</span>
+        </div>
+        <div class="endpoint-body">
+          <table class="params-table">
+            <thead><tr><th>参数</th><th>类型</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>samples</code> <span class="required">必填</span></td><td class="type">array</td><td>语音样本数组，每项包含 <code>audio_url</code> 和可选 <code>metadata</code></td></tr>
+              <tr><td><code>callback_url</code></td><td class="type">string</td><td>批量完成后的回调地址</td></tr>
+              <tr><td><code>priority</code></td><td class="type">string</td><td><code>normal</code> | <code>high</code>，高优先级队列加收 50% 费用</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:12px">单次最多提交 100 个样本。响应立即返回 <code>batch_id</code>，通过 <code>GET /analysis/batch/{batch_id}</code> 轮询进度。</p>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/analysis/batch/{batch_id}</span>
+          <span class="endpoint-desc">查询批量任务状态</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>JSON Response</span></div>
+            <pre>{
+  <span class="str">"batch_id"</span>: <span class="str">"bat_9x2k4n"</span>,
+  <span class="str">"status"</span>: <span class="str">"processing"</span>,
+  <span class="str">"total"</span>: <span class="num">50</span>,
+  <span class="str">"completed"</span>: <span class="num">38</span>,
+  <span class="str">"failed"</span>: <span class="num">0</span>,
+  <span class="str">"results_url"</span>: <span class="str">"https://api.../v1/analysis/batch/bat_9x2k4n/results"</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENDPOINT: Report -->
+    <div class="section" id="ep-report">
+      <h2>报告查询</h2>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/reports/{analysis_id}</span>
+          <span class="endpoint-desc">获取指定分析的完整报告</span>
+        </div>
+        <div class="endpoint-body">
+          <table class="params-table">
+            <thead><tr><th>参数</th><th>类型</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>format</code></td><td class="type">string</td><td><code>json</code> | <code>pdf</code>，默认 json</td></tr>
+              <tr><td><code>lang</code></td><td class="type">string</td><td>报告语言：<code>zh</code> | <code>en</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/reports</span>
+          <span class="endpoint-desc">列出所有报告（分页）</span>
+        </div>
+        <div class="endpoint-body">
+          <table class="params-table">
+            <thead><tr><th>参数</th><th>类型</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>page</code></td><td class="type">integer</td><td>页码，默认 1</td></tr>
+              <tr><td><code>per_page</code></td><td class="type">integer</td><td>每页条数，默认 20，最大 100</td></tr>
+              <tr><td><code>from</code> / <code>to</code></td><td class="type">string</td><td>时间范围过滤 (ISO 8601)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENDPOINT: User -->
+    <div class="section" id="ep-user">
+      <h2>用户管理</h2>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/account/usage</span>
+          <span class="endpoint-desc">查询本月 API 用量</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>JSON Response</span></div>
+            <pre>{
+  <span class="str">"plan"</span>: <span class="str">"pro"</span>,
+  <span class="str">"period"</span>: <span class="str">"2025-04"</span>,
+  <span class="str">"analyses_used"</span>: <span class="num">1847</span>,
+  <span class="str">"analyses_limit"</span>: <span class="str">"unlimited"</span>,
+  <span class="str">"storage_mb"</span>: <span class="num">234.5</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="method method-post">POST</span>
+          <span class="endpoint-path">/account/api-keys</span>
+          <span class="endpoint-desc">生成新的 API Key</span>
+        </div>
+        <div class="endpoint-body">
+          <p>请求体可选 <code>name</code> 和 <code>expires_at</code> 字段。新密钥仅在创建响应中返回一次。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RATE LIMIT -->
+    <div class="section" id="rate-limit">
+      <h2>限流策略</h2>
+      <p>API 采用令牌桶限流算法，不同套餐对应不同的请求配额：</p>
+      <table class="params-table">
+        <thead><tr><th>套餐</th><th>请求频率</th><th>并发数</th><th>批量上限</th></tr></thead>
+        <tbody>
+          <tr><td>Basic</td><td>10 次/分钟</td><td>2</td><td>10 样本/批</td></tr>
+          <tr><td>Pro</td><td>60 次/分钟</td><td>10</td><td>100 样本/批</td></tr>
+          <tr><td>Enterprise</td><td>自定义</td><td>自定义</td><td>自定义</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px">超限时返回 <code>429 Too Many Requests</code>，响应头中包含：</p>
+      <div class="code-block">
+        <div class="code-header"><span>Response Headers</span></div>
+        <pre>X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1714300800
+Retry-After: 45</pre>
+      </div>
+    </div>
+
+    <!-- ERRORS -->
+    <div class="section" id="errors">
+      <h2>错误码</h2>
+      <p>所有错误响应遵循统一格式：</p>
+      <div class="code-block">
+        <div class="code-header"><span>错误响应格式</span></div>
+        <pre>{
+  <span class="str">"error"</span>: {
+    <span class="str">"code"</span>: <span class="str">"INVALID_AUDIO"</span>,
+    <span class="str">"message"</span>: <span class="str">"Audio file format not supported"</span>,
+    <span class="str">"details"</span>: <span class="str">"Accepted formats: WAV, MP3, FLAC"</span>
+  }
+}</pre>
+      </div>
+      <ul class="error-codes">
+        <li class="error-code"><span class="code">400</span><span class="msg"><strong>BAD_REQUEST</strong> — 请求参数缺失或格式错误</span></li>
+        <li class="error-code"><span class="code">401</span><span class="msg"><strong>UNAUTHORIZED</strong> — API Key 缺失或无效</span></li>
+        <li class="error-code"><span class="code">403</span><span class="msg"><strong>FORBIDDEN</strong> — 无权访问该资源，或套餐不支持该功能</span></li>
+        <li class="error-code"><span class="code">404</span><span class="msg"><strong>NOT_FOUND</strong> — 资源不存在</span></li>
+        <li class="error-code"><span class="code">413</span><span class="msg"><strong>PAYLOAD_TOO_LARGE</strong> — 音频文件超过 10MB 限制</span></li>
+        <li class="error-code"><span class="code">415</span><span class="msg"><strong>UNSUPPORTED_MEDIA_TYPE</strong> — 音频格式不支持</span></li>
+        <li class="error-code"><span class="code">422</span><span class="msg"><strong>INVALID_AUDIO</strong> — 音频质量过低或时长不足 5 秒</span></li>
+        <li class="error-code"><span class="code">429</span><span class="msg"><strong>RATE_LIMITED</strong> — 请求频率超限，请稍后重试</span></li>
+        <li class="error-code"><span class="code">500</span><span class="msg"><strong>INTERNAL_ERROR</strong> — 服务器内部错误，请联系技术支持</span></li>
+        <li class="error-code"><span class="code">503</span><span class="msg"><strong>SERVICE_UNAVAILABLE</strong> — 服务暂时不可用，通常出现在维护窗口</span></li>
+      </ul>
+    </div>
+
+    <!-- SDK -->
+    <div class="section" id="sdks">
+      <h2>SDK 代码示例</h2>
+
+      <h3>Python</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Python</span></div>
+        <pre><span class="kw">import</span> requests
+
+API_KEY = <span class="str">"vh_live_xxxxxxxxxxxx"</span>
+BASE_URL = <span class="str">"https://api.voicehealth.mokangmedical.com/v1"</span>
+
+<span class="kw">def</span> <span class="fn">analyze_health</span>(audio_path, metrics=<span class="kw">None</span>):
+    <span class="str">"""上传语音文件进行健康分析"""</span>
+    headers = {<span class="str">"Authorization"</span>: <span class="str">f"Bearer {API_KEY}"</span>}
+
+    <span class="kw">with</span> <span class="fn">open</span>(audio_path, <span class="str">"rb"</span>) <span class="kw">as</span> f:
+        files = {<span class="str">"audio"</span>: f}
+        data = {<span class="str">"language"</span>: <span class="str">"zh-CN"</span>}
+        <span class="kw">if</span> metrics:
+            data[<span class="str">"metrics"</span>] = <span class="str">","</span>.join(metrics)
+
+        resp = requests.post(
+            <span class="str">f"{BASE_URL}/analysis/health"</span>,
+            headers=headers, files=files, data=data
+        )
+
+    resp.raise_for_status()
+    <span class="kw">return</span> resp.json()
+
+<span class="cmt"># 使用示例</span>
+result = <span class="fn">analyze_health</span>(
+    <span class="str">"recording.wav"</span>,
+    metrics=[<span class="str">"respiratory"</span>, <span class="str">"cardiovascular"</span>]
+)
+<span class="fn">print</span>(<span class="str">f"Respiratory risk: {result['results']['respiratory']['risk_level']}"</span>)
+<span class="fn">print</span>(<span class="str">f"Analysis time: {result['duration_ms']}ms"</span>)</pre>
+      </div>
+
+      <h3>JavaScript (Node.js)</h3>
+      <div class="code-block">
+        <div class="code-header"><span>JavaScript</span></div>
+        <pre><span class="kw">const</span> fs = <span class="fn">require</span>(<span class="str">'fs'</span>);
+<span class="kw">const</span> FormData = <span class="fn">require</span>(<span class="str">'form-data'</span>);
+<span class="kw">const</span> fetch = <span class="fn">require</span>(<span class="str">'node-fetch'</span>);
+
+<span class="kw">const</span> API_KEY = <span class="str">'vh_live_xxxxxxxxxxxx'</span>;
+<span class="kw">const</span> BASE_URL = <span class="str">'https://api.voicehealth.mokangmedical.com/v1'</span>;
+
+<span class="kw">async function</span> <span class="fn">analyzeHealth</span>(audioPath, metrics = []) {
+  <span class="kw">const</span> form = <span class="kw">new</span> <span class="fn">FormData</span>();
+  form.<span class="fn">append</span>(<span class="str">'audio'</span>, fs.<span class="fn">createReadStream</span>(audioPath));
+  form.<span class="fn">append</span>(<span class="str">'language'</span>, <span class="str">'zh-CN'</span>);
+  <span class="kw">if</span> (metrics.length) {
+    form.<span class="fn">append</span>(<span class="str">'metrics'</span>, JSON.<span class="fn">stringify</span>(metrics));
+  }
+
+  <span class="kw">const</span> resp = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`${BASE_URL}/analysis/health`</span>, {
+    method: <span class="str">'POST'</span>,
+    headers: { Authorization: <span class="str">`Bearer ${API_KEY}`</span> },
+    body: form,
+  });
+
+  <span class="kw">if</span> (!resp.ok) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP ${resp.status}`</span>);
+  <span class="kw">return</span> resp.<span class="fn">json</span>();
+}
+
+<span class="cmt">// 使用示例</span>
+<span class="fn">analyzeHealth</span>(<span class="str">'./recording.wav'</span>, [<span class="str">'respiratory'</span>, <span class="str">'mental'</span>])
+  .<span class="fn">then</span>(r => console.<span class="fn">log</span>(r.results))
+  .<span class="fn">catch</span>(console.error);</pre>
+      </div>
+
+      <h3>cURL</h3>
+      <div class="code-block">
+        <div class="code-header"><span>cURL</span></div>
+        <pre><span class="cmt"># 基础健康分析</span>
+<span class="kw">curl</span> -X POST https://api.voicehealth.mokangmedical.com/v1/analysis/health \
+  -H <span class="str">"Authorization: Bearer vh_live_xxxx"</span> \
+  -F <span class="str">"audio=@sample.wav"</span> \
+  -F <span class="str">"language=zh-CN"</span>
+
+<span class="cmt"># 查询分析报告 (PDF 格式)</span>
+<span class="kw">curl</span> https://api.voicehealth.mokangmedical.com/v1/reports/ana_8f3k2j1m?format=pdf \
+  -H <span class="str">"Authorization: Bearer vh_live_xxxx"</span> \
+  -o report.pdf
+
+<span class="cmt"># 查询用量</span>
+<span class="kw">curl</span> https://api.voicehealth.mokangmedical.com/v1/account/usage \
+  -H <span class="str">"Authorization: Bearer vh_live_xxxx"</span></pre>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="index.html">首页</a>
+    <a href="features.html">功能</a>
+    <a href="cases.html">案例</a>
+    <a href="api.html">API文档</a>
+    <a href="pricing.html">定价</a>
+    <a href="quickstart.html">快速开始</a>
+    <a href="https://github.com/VoiceHealth — ./voicehealth">GitHub</a>
+    <a href="https://mokangmedical.github.io/opc-homepage/">VoiceHealth — .</a>
+  </div>
+  <p>&copy; 2025 VoiceHealth — .. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

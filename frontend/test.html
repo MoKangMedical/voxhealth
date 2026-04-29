@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceHealth API 测试</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #0a0a0f; 
+            color: #e2e2e8; 
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { 
+            font-size: 32px; 
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #3b82f6, #22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-green { background: rgba(34,197,94,0.2); color: #22c55e; }
+        .badge-blue { background: rgba(59,130,246,0.2); color: #3b82f6; }
+        .badge-yellow { background: rgba(234,179,8,0.2); color: #eab308; }
+        
+        .endpoint {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            font-family: 'SF Mono', monospace;
+        }
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .method-get { background: #22c55e; color: #000; }
+        .method-post { background: #3b82f6; color: #fff; }
+        
+        .url { color: #e2e2e8; }
+        
+        button {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        button:hover { background: #2563eb; }
+        button:active { transform: scale(0.98); }
+        
+        .result {
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        .result.show { display: block; }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status.online { background: rgba(34,197,94,0.1); }
+        .status.offline { background: rgba(239,68,68,0.1); }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status.online .status-dot { background: #22c55e; }
+        .status.offline .status-dot { background: #ef4444; }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .feature-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .feature-icon { font-size: 32px; margin-bottom: 8px; }
+        .feature-name { font-size: 14px; font-weight: 600; }
+        .feature-desc { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+        
+        audio { width: 100%; margin: 16px 0; }
+        
+        .recording-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .record-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .record-btn.recording {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .record-btn svg { width: 24px; height: 24px; fill: #fff; }
+        
+        .reading-text {
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 VoiceHealth API 测试</h1>
+        
+        <div id="status" class="status offline">
+            <div class="status-dot"></div>
+            <span>检查中...</span>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📡 API 端点</div>
+            
+            <div class="endpoint">
+                <span class="method method-get">GET</span>
+                <span class="url">/api/health</span>
+                <span class="badge badge-green">健康检查</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method method-get">GET</span>
+                <span class="url">/api/v1/verification/text</span>
+                <span class="badge badge-blue">获取朗读文本</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method method-post">POST</span>
+                <span class="url">/api/v1/verification/liveness</span>
+                <span class="badge badge-yellow">活体检测</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method method-post">POST</span>
+                <span class="url">/api/v1/analyze</span>
+                <span class="badge badge-blue">语音分析</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method method-post">POST</span>
+                <span class="url">/api/v1/video/analyze</span>
+                <span class="badge badge-yellow">视频分析</span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">🎯 功能模块</div>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🎤</div>
+                    <div class="feature-name">语音健康检测</div>
+                    <div class="feature-desc">59维声学特征</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✅</div>
+                    <div class="feature-name">语音验证</div>
+                    <div class="feature-desc">活体+朗读验证</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📸</div>
+                    <div class="feature-name">面部分析</div>
+                    <div class="feature-desc">6维面部评估</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🎬</div>
+                    <div class="feature-name">视频分析</div>
+                    <div class="feature-desc">皮肤/眼睛/头发</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📝 语音测试</div>
+            
+            <div id="readingText" class="reading-text" style="display:none;"></div>
+            
+            <button onclick="fetchReadingText()">获取朗读文本</button>
+            <button onclick="startRecording()" id="recordBtn">开始录音</button>
+            <button onclick="stopRecording()" id="stopBtn" disabled>停止录音</button>
+            
+            <audio id="audioPlayer" controls style="display:none;"></audio>
+            
+            <div id="recordingStatus" style="margin: 10px 0; color: rgba(255,255,255,0.45);"></div>
+            
+            <button onclick="testLiveness()" id="livenessBtn" disabled>测试活体检测</button>
+            <button onclick="testAnalyze()" id="analyzeBtn" disabled>测试语音分析</button>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📊 测试结果</div>
+            <button onclick="testHealth()">健康检查</button>
+            <button onclick="testDiseases()">疾病列表</button>
+            <button onclick="clearResult()">清除结果</button>
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8100';
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let audioBlob = null;
+        
+        // 检查API状态
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/api/health`);
+                const data = await res.json();
+                document.getElementById('status').className = 'status online';
+                document.getElementById('status').innerHTML = `
+                    <div class="status-dot"></div>
+                    <span>API 在线 - ${data.service} v${data.version}</span>
+                `;
+            } catch (err) {
+                document.getElementById('status').className = 'status offline';
+                document.getElementById('status').innerHTML = `
+                    <div class="status-dot"></div>
+                    <span>API 离线 - 请启动后端服务</span>
+                `;
+            }
+        }
+        
+        // 显示结果
+        function showResult(data) {
+            const el = document.getElementById('result');
+            el.className = 'result show';
+            el.textContent = JSON.stringify(data, null, 2);
+        }
+        
+        function clearResult() {
+            document.getElementById('result').className = 'result';
+        }
+        
+        // 测试健康检查
+        async function testHealth() {
+            const res = await fetch(`${API_BASE}/api/health`);
+            showResult(await res.json());
+        }
+        
+        // 测试疾病列表
+        async function testDiseases() {
+            const res = await fetch(`${API_BASE}/api/diseases`);
+            showResult(await res.json());
+        }
+        
+        // 获取朗读文本
+        async function fetchReadingText() {
+            const res = await fetch(`${API_BASE}/api/v1/verification/text`);
+            const data = await res.json();
+            
+            if (data.ok) {
+                const el = document.getElementById('readingText');
+                el.style.display = 'block';
+                el.innerHTML = `
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 8px;">
+                        请朗读以下文字（ID: ${data.text.id}）
+                    </div>
+                    <div>${data.text.text}</div>
+                `;
+            }
+            
+            showResult(data);
+        }
+        
+        // 开始录音
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayer').src = audioUrl;
+                    document.getElementById('audioPlayer').style.display = 'block';
+                    document.getElementById('livenessBtn').disabled = false;
+                    document.getElementById('analyzeBtn').disabled = false;
+                    document.getElementById('recordingStatus').textContent = '录音完成，可以进行测试';
+                };
+                
+                mediaRecorder.start();
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('recordingStatus').textContent = '录音中...';
+                document.getElementById('recordBtn').classList.add('recording');
+            } catch (err) {
+                alert('无法访问麦克风: ' + err.message);
+            }
+        }
+        
+        // 停止录音
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('recordBtn').classList.remove('recording');
+            }
+        }
+        
+        // 测试活体检测
+        async function testLiveness() {
+            if (!audioBlob) return;
+            
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.wav');
+            
+            document.getElementById('livenessBtn').textContent = '检测中...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/verification/liveness`, {
+                    method: 'POST',
+                    body: formData
+                });
+                showResult(await res.json());
+            } catch (err) {
+                showResult({ error: err.message });
+            }
+            
+            document.getElementById('livenessBtn').textContent = '测试活体检测';
+        }
+        
+        // 测试语音分析
+        async function testAnalyze() {
+            if (!audioBlob) return;
+            
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.wav');
+            
+            document.getElementById('analyzeBtn').textContent = '分析中...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                showResult(await res.json());
+            } catch (err) {
+                showResult({ error: err.message });
+            }
+            
+            document.getElementById('analyzeBtn').textContent = '测试语音分析';
+        }
+        
+        // 初始化
+        checkStatus();
+        setInterval(checkStatus, 30000);
+    </script>
+</body>
+</html>

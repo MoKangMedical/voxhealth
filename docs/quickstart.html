@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>快速开始 — VoiceHealth</title>
+<meta name="description" content="VoiceHealth快速开始指南：5分钟完成首次API调用，包含安装步骤、代码示例和常见问题">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg-card:#12121a;--bg-card-hover:#1a1a28;
+  --purple:#6c5ce7;--purple-light:#a29bfe;--purple-glow:rgba(108,92,231,0.3);
+  --text:#e8e8f0;--text-muted:#8888a8;--text-dim:#5a5a7a;
+  --border:rgba(108,92,231,0.15);--border-light:rgba(255,255,255,0.06);
+  --success:#00b894;--warning:#fdcb6e;--info:#74b9ff;--danger:#e17055;
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;font-weight:600;line-height:1.3}
+code,pre{font-family:'JetBrains Mono','Fira Code',monospace}
+a{color:var(--purple-light)}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:700;font-size:16px;font-family:'Space Grotesk',sans-serif}
+.nav-links{display:flex;gap:4px;align-items:center}
+.nav-links a{color:var(--text-muted);text-decoration:none;font-size:13px;padding:7px 14px;border-radius:8px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:#fff;background:rgba(108,92,231,0.12)}
+.nav-links a.active{color:#fff;background:rgba(108,92,231,0.18)}
+.nav-cta{background:linear-gradient(135deg,var(--purple),#8b5cf6);color:#fff;padding:7px 18px;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none}
+
+/* HERO */
+.hero{padding:140px 2rem 60px;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(108,92,231,0.12) 0%,transparent 60%)}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);margin-bottom:16px;color:#fff}
+.hero p{font-size:1.1rem;color:var(--text-muted);max-width:640px;margin:0 auto}
+.hero .time-badge{
+  display:inline-block;margin-top:16px;
+  background:rgba(0,184,148,0.1);border:1px solid rgba(0,184,148,0.2);
+  color:var(--success);padding:6px 16px;border-radius:20px;font-size:0.85rem;font-weight:500;
+}
+
+/* LAYOUT */
+.layout{display:flex;max-width:1100px;margin:0 auto;padding:0 2rem 4rem;gap:2rem}
+.sidebar{width:200px;flex-shrink:0;position:sticky;top:80px;align-self:flex-start}
+.main{flex:1;min-width:0}
+
+/* SIDEBAR */
+.sidebar-nav{list-style:none}
+.sidebar-nav li{margin-bottom:2px}
+.sidebar-nav a{display:block;padding:8px 14px;color:var(--text-muted);text-decoration:none;font-size:0.88rem;border-radius:8px;transition:all .2s}
+.sidebar-nav a:hover{color:#fff;background:rgba(108,92,231,0.1)}
+.sidebar-nav a.active{color:#fff;background:rgba(108,92,231,0.15);font-weight:500}
+
+/* STEPS */
+.step{margin-bottom:3rem}
+.step-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.step-num{
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,var(--purple),#8b5cf6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;font-weight:700;color:#fff;font-family:'Space Grotesk',sans-serif;
+  flex-shrink:0;
+}
+.step-header h2{font-size:1.4rem;color:#fff}
+.step p{color:var(--text-muted);font-size:0.95rem;margin-bottom:12px}
+
+/* CODE BLOCK */
+.code-block{background:#0d0d14;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:12px 0}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(108,92,231,0.06);border-bottom:1px solid var(--border-light)}
+.code-header span{font-size:0.78rem;color:var(--text-dim);font-weight:500}
+pre{padding:16px;overflow-x:auto;font-size:0.82rem;line-height:1.6;color:var(--text)}
+pre .kw{color:var(--purple-light)}
+pre .str{color:var(--success)}
+pre .num{color:var(--warning)}
+pre .cmt{color:var(--text-dim)}
+pre .fn{color:var(--info)}
+pre .out{color:var(--text-dim);font-style:italic}
+
+/* TERMINAL */
+.terminal{background:#0a0a0f;border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin:12px 0}
+.terminal-bar{display:flex;gap:6px;padding:8px 14px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06)}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal-dot.r{background:#ff5f56}.terminal-dot.y{background:#ffbd2e}.terminal-dot.g{background:#27c93f}
+.terminal pre{padding:14px 16px;color:#00b894}
+.terminal .prompt{color:var(--purple-light)}
+.terminal .output{color:var(--text-muted)}
+
+/* INFO BOX */
+.info-box{padding:16px 20px;border-radius:10px;margin:12px 0}
+.info-box.tip{background:rgba(0,184,148,0.08);border:1px solid rgba(0,184,148,0.2)}
+.info-box.warning{background:rgba(253,203,110,0.08);border:1px solid rgba(253,203,110,0.2)}
+.info-box.info{background:rgba(116,185,255,0.08);border:1px solid rgba(116,185,255,0.2)}
+.info-box h4{font-size:0.9rem;margin-bottom:6px}
+.info-box p{font-size:0.88rem;margin-bottom:0;color:var(--text-muted)}
+
+/* LINK CARDS */
+.link-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px}
+.link-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:20px;text-decoration:none;display:block;transition:all .2s;
+}
+.link-card:hover{border-color:rgba(108,92,231,0.4);transform:translateY(-2px)}
+.link-card h4{color:#fff;font-size:0.95rem;margin-bottom:6px}
+.link-card p{color:var(--text-muted);font-size:0.85rem;margin:0}
+
+/* FAQ */
+.faq-section{margin-top:3rem}
+.faq{margin-bottom:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.faq-q{padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500;color:#fff;font-size:0.92rem;transition:background .2s}
+.faq-q:hover{background:var(--bg-card-hover)}
+.faq-q .arrow{color:var(--text-dim);transition:transform .2s;font-size:0.8rem}
+.faq.open .faq-q .arrow{transform:rotate(180deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 20px}
+.faq.open .faq-a{max-height:400px;padding:0 20px 16px}
+.faq-a p{font-size:0.88rem;color:var(--text-muted);line-height:1.7}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem;margin-top:4rem;text-align:center;color:var(--text-dim);font-size:0.85rem}
+.footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.footer-links a{color:var(--text-muted);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--purple-light)}
+
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;position:static}
+  .sidebar-nav{display:flex;gap:4px;overflow-x:auto}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="url(#ng1)" stroke-width="2.5"/><path d="M10 16h12M16 10v12" stroke="url(#ng1)" stroke-width="2.5" stroke-linecap="round"/><defs><linearGradient id="ng1" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#818cf8"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs></svg>
+    <span style="background:linear-gradient(135deg,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent">VoiceHealth</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">首页</a>
+    <a href="features.html">功能</a>
+    <a href="cases.html">案例</a>
+    <a href="api.html">API</a>
+    <a href="pricing.html">定价</a>
+    <a href="quickstart.html" class="active">快速开始</a>
+  </div>
+  <a class="nav-cta" href="https://github.com/VoiceHealth — ./voicehealth">GitHub</a>
+</nav>
+
+<section class="hero">
+  <h1>快速开始</h1>
+  <p>5 分钟内完成首次 VoiceHealth API 调用，从安装到获取健康分析结果</p>
+  <span class="time-badge">预计用时: 5 分钟</span>
+</section>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <ul class="sidebar-nav">
+      <li><a href="#prerequisites">前置条件</a></li>
+      <li><a href="#step1">1. 获取 API Key</a></li>
+      <li><a href="#step2">2. 安装 SDK</a></li>
+      <li><a href="#step3">3. 首次调用</a></li>
+      <li><a href="#step4">4. 解析结果</a></li>
+      <li><a href="#next-steps">后续步骤</a></li>
+      <li><a href="#faq">常见问题</a></li>
+    </ul>
+  </aside>
+
+  <div class="main">
+
+    <!-- PREREQUISITES -->
+    <div class="step" id="prerequisites">
+      <div class="step-header">
+        <div class="step-num" style="background:var(--text-dim);font-size:0.8rem">PRE</div>
+        <h2>前置条件</h2>
+      </div>
+      <p>开始之前，请确保您已具备以下条件：</p>
+      <ul style="list-style:none;padding:0">
+        <li style="padding:6px 0;color:var(--text-muted);font-size:0.92rem">
+          <span style="color:var(--success);margin-right:8px">+</span> Python 3.8+ 或 Node.js 16+
+        </li>
+        <li style="padding:6px 0;color:var(--text-muted);font-size:0.92rem">
+          <span style="color:var(--success);margin-right:8px">+</span> 一段 5-30 秒的语音样本 (WAV/MP3/FLAC)
+        </li>
+        <li style="padding:6px 0;color:var(--text-muted);font-size:0.92rem">
+          <span style="color:var(--success);margin-right:8px">+</span> 有效的 VoiceHealth API Key
+        </li>
+      </ul>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step" id="step1">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <h2>获取 API Key</h2>
+      </div>
+      <p>前往 VoiceHealth 平台注册账户并获取 API 密钥：</p>
+      <ul style="list-style:none;padding:0;margin-bottom:16px">
+        <li style="padding:4px 0;color:var(--text-muted);font-size:0.92rem">
+          1. 访问 <a href="https://github.com/VoiceHealth — ./voicehealth">VoiceHealth GitHub</a> 了解项目
+        </li>
+        <li style="padding:4px 0;color:var(--text-muted);font-size:0.92rem">
+          2. 克隆仓库并按照 README 部署后端服务
+        </li>
+        <li style="padding:4px 0;color:var(--text-muted);font-size:0.92rem">
+          3. 在配置文件中设置 API 密钥
+        </li>
+      </ul>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot r"></span>
+          <span class="terminal-dot y"></span>
+          <span class="terminal-dot g"></span>
+        </div>
+        <pre><span class="prompt">$</span> git clone https://github.com/VoiceHealth — ./voicehealth.git
+<span class="output">Cloning into 'voicehealth'...</span>
+<span class="prompt">$</span> cd voicehealth
+<span class="prompt">$</span> cp .env.example .env
+<span class="output"># 编辑 .env 文件，填入您的配置</span></pre>
+      </div>
+
+      <div class="info-box tip">
+        <h4>测试环境</h4>
+        <p>开发阶段可使用 sandbox 环境：<code>sandbox-api.voicehealth.mokangmedical.com</code>，测试密钥前缀为 <code>vh_test_</code>，不消耗正式额度。</p>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step2">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <h2>安装 SDK</h2>
+      </div>
+      <p>选择您偏好的语言安装 VoiceHealth SDK：</p>
+
+      <h3 style="margin:20px 0 10px;font-size:1rem;color:var(--purple-light)">Python</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot r"></span><span class="terminal-dot y"></span><span class="terminal-dot g"></span>
+        </div>
+        <pre><span class="prompt">$</span> pip install voicehealth
+<span class="output">Successfully installed voicehealth-1.2.0</span></pre>
+      </div>
+
+      <h3 style="margin:20px 0 10px;font-size:1rem;color:var(--purple-light)">Node.js</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot r"></span><span class="terminal-dot y"></span><span class="terminal-dot g"></span>
+        </div>
+        <pre><span class="prompt">$</span> npm install @voicehealth/sdk
+<span class="output">added 3 packages in 2.1s</span></pre>
+      </div>
+
+      <h3 style="margin:20px 0 10px;font-size:1rem;color:var(--purple-light)">或直接使用 cURL</h3>
+      <p style="color:var(--text-muted);font-size:0.92rem">无需安装任何依赖，所有系统均可直接使用 cURL 调用 REST API。</p>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step3">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <h2>首次 API 调用</h2>
+      </div>
+      <p>使用以下代码完成第一次语音健康分析：</p>
+
+      <h3 style="margin:20px 0 10px;font-size:1rem;color:var(--purple-light)">Python</h3>
+      <div class="code-block">
+        <div class="code-header"><span>quickstart.py</span></div>
+        <pre><span class="kw">from</span> voicehealth <span class="kw">import</span> VoiceHealthClient
+
+<span class="cmt"># 初始化客户端</span>
+client = VoiceHealthClient(api_key=<span class="str">"vh_live_xxxxxxxxxxxx"</span>)
+
+<span class="cmt"># 上传语音并获取分析结果</span>
+result = client.analyze(
+    audio_path=<span class="str">"sample.wav"</span>,
+    language=<span class="str">"zh-CN"</span>,
+    metrics=[<span class="str">"respiratory"</span>, <span class="str">"cardiovascular"</span>, <span class="str">"mental"</span>]
+)
+
+<span class="cmt"># 打印结果</span>
+<span class="fn">print</span>(<span class="str">f"分析ID: {result.analysis_id}"</span>)
+<span class="fn">print</span>(<span class="str">f"耗时: {result.duration_ms}ms"</span>)
+
+<span class="kw">for</span> metric, data <span class="kw">in</span> result.results.items():
+    <span class="fn">print</span>(<span class="str">f"  {metric}: 风险等级={data.risk_level}, 评分={data.score}"</span>)</pre>
+      </div>
+
+      <h3 style="margin:20px 0 10px;font-size:1rem;color:var(--purple-light)">Node.js</h3>
+      <div class="code-block">
+        <div class="code-header"><span>quickstart.js</span></div>
+        <pre><span class="kw">const</span> { VoiceHealthClient } = <span class="fn">require</span>(<span class="str">'@voicehealth/sdk'</span>);
+
+<span class="kw">const</span> client = <span class="kw">new</span> <span class="fn">VoiceHealthClient</span>(<span class="str">'vh_live_xxxxxxxxxxxx'</span>);
+
+(<span class="kw">async</span> () => {
+  <span class="kw">const</span> result = <span class="kw">await</span> client.<span class="fn">analyze</span>({
+    audioPath: <span class="str">'./sample.wav'</span>,
+    language: <span class="str">'zh-CN'</span>,
+    metrics: [<span class="str">'respiratory'</span>, <span class="str">'cardiovascular'</span>, <span class="str">'mental'</span>],
+  });
+
+  console.<span class="fn">log</span>(<span class="str">`Analysis ID: ${result.analysisId}`</span>);
+  console.<span class="fn">log</span>(<span class="str">`Duration: ${result.durationMs}ms`</span>);
+
+  <span class="kw">for</span (<span class="kw">const</span> [metric, data] <span class="kw">of</span> Object.<span class="fn">entries</span>(result.results)) {
+    console.<span class="fn">log</span>(<span class="str">`  ${metric}: risk=${data.riskLevel}, score=${data.score}`</span>);
+  }
+})();</pre>
+      </div>
+
+      <h3 style="margin:20px 0 10px;font-size:1rem;color:var(--purple-light)">cURL</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot r"></span><span class="terminal-dot y"></span><span class="terminal-dot g"></span>
+        </div>
+        <pre><span class="prompt">$</span> curl -s -X POST \
+  https://api.voicehealth.mokangmedical.com/v1/analysis/health \
+  -H <span class="str">"Authorization: Bearer vh_live_xxxx"</span> \
+  -F <span class="str">"audio=@sample.wav"</span> \
+  -F <span class="str">"language=zh-CN"</span> | python -m json.tool
+
+<span class="output">{
+    "status": "completed",
+    "analysis_id": "ana_8f3k2j1m",
+    "duration_ms": 2847,
+    "results": {
+        "respiratory": {"risk_level": "low", "score": 0.12},
+        "cardiovascular": {"risk_level": "medium", "score": 0.45},
+        "mental": {"risk_level": "low", "score": 0.18}
+    }
+}</span></pre>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" id="step4">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <h2>理解分析结果</h2>
+      </div>
+      <p>API 返回的 JSON 结果包含以下关键字段：</p>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;margin:16px 0">
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 0;font-size:0.9rem"><code style="color:var(--purple-light)">status</code></td>
+            <td style="padding:10px 0;font-size:0.88rem;color:var(--text-muted)">分析状态：<code>completed</code> | <code>processing</code> | <code>failed</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 0;font-size:0.9rem"><code style="color:var(--purple-light)">analysis_id</code></td>
+            <td style="padding:10px 0;font-size:0.88rem;color:var(--text-muted)">唯一分析ID，用于后续查询报告</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 0;font-size:0.9rem"><code style="color:var(--purple-light)">duration_ms</code></td>
+            <td style="padding:10px 0;font-size:0.88rem;color:var(--text-muted)">服务端分析耗时 (毫秒)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 0;font-size:0.9rem"><code style="color:var(--purple-light)">results.{metric}.risk_level</code></td>
+            <td style="padding:10px 0;font-size:0.88rem;color:var(--text-muted)">风险等级：<code>low</code> | <code>medium</code> | <code>high</code></td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;font-size:0.9rem"><code style="color:var(--purple-light)">results.{metric}.score</code></td>
+            <td style="padding:10px 0;font-size:0.88rem;color:var(--text-muted)">风险评分：0.0 (最低) ~ 1.0 (最高)</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="info-box warning">
+        <h4>重要提示</h4>
+        <p>VoiceHealth 提供的健康评估仅供参考，不构成医疗诊断。高风险结果应建议用户前往医疗机构进行专业检查。请在您的应用中明确展示此声明。</p>
+      </div>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <div class="step" id="next-steps">
+      <div class="step-header">
+        <div class="step-num" style="background:linear-gradient(135deg,var(--success),#00cec9);font-size:1rem">&#10003;</div>
+        <h2>后续步骤</h2>
+      </div>
+      <p>恭喜，您已完成首次 VoiceHealth API 调用。接下来可以探索更多功能：</p>
+
+      <div class="link-cards">
+        <a href="api.html" class="link-card">
+          <h4>API 完整文档</h4>
+          <p>查阅全部端点、参数说明和高级用法</p>
+        </a>
+        <a href="cases.html" class="link-card">
+          <h4>行业案例</h4>
+          <p>了解其他客户如何集成 VoiceHealth</p>
+        </a>
+        <a href="pricing.html" class="link-card">
+          <h4>定价方案</h4>
+          <p>选择适合您业务规模的套餐</p>
+        </a>
+        <a href="features.html" class="link-card">
+          <h4>功能详解</h4>
+          <p>深入了解 59 维声学特征引擎</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section" id="faq">
+      <h2 style="font-size:1.6rem;color:#fff;margin-bottom:20px">常见问题</h2>
+
+      <div class="faq">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span>音频文件有哪些格式和时长要求</span>
+          <span class="arrow">&#9660;</span>
+        </div>
+        <div class="faq-a">
+          <p>支持 WAV、MP3、FLAC 三种格式，文件大小不超过 10MB。音频时长建议 15-30 秒，最短不低于 5 秒。推荐采样率 16kHz 以上以获得最佳分析精度。低于 8kHz 采样率的音频可能影响部分声学特征的提取。</p>
+        </div>
+      </div>
+
+      <div class="faq">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span>分析结果返回需要多久</span>
+          <span class="arrow">&#9660;</span>
+        </div>
+        <div class="faq-a">
+          <p>典型的 30 秒音频分析耗时 2-5 秒。Pro 及以上方案享有优先队列，平均响应时间 &lt; 3 秒。如需异步处理，可通过 <code>callback_url</code> 参数指定 Webhook 回调地址，分析完成后系统自动推送结果。</p>
+        </div>
+      </div>
+
+      <div class="faq">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span>API 返回 401 错误怎么办</span>
+          <span class="arrow">&#9660;</span>
+        </div>
+        <div class="faq-a">
+          <p>401 表示认证失败。请检查：1) API Key 是否正确，注意区分 test/live 环境；2) Authorization header 格式是否为 <code>Bearer {key}</code>；3) 密钥是否已过期或被轮换。如仍无法解决，请在 Dashboard 中重新生成密钥。</p>
+        </div>
+      </div>
+
+      <div class="faq">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span>如何在生产环境中安全地存储 API Key</span>
+          <span class="arrow">&#9660;</span>
+        </div>
+        <div class="faq-a">
+          <p>推荐做法：1) 使用环境变量存储密钥，不要硬编码在源码中；2) 在后端服务中调用 API，避免在客户端暴露密钥；3) 使用 CI/CD 的 secrets 管理功能；4) 定期轮换密钥。详细安全指南请参阅 API 文档中的"安全提醒"部分。</p>
+        </div>
+      </div>
+
+      <div class="faq">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span>能否在本地离线运行 VoiceHealth</span>
+          <span class="arrow">&#9660;</span>
+        </div>
+        <div class="faq-a">
+          <p>可以。Enterprise 方案支持私有化部署，将完整的推理引擎部署在您的内网环境中。需要 GPU 服务器 (推荐 NVIDIA T4 或以上)。私有化版本与云端 API 接口完全兼容，迁移成本为零。具体部署方案请联系销售团队。</p>
+        </div>
+      </div>
+
+      <div class="faq">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span>分析结果的准确率如何保证</span>
+          <span class="arrow">&#9660;</span>
+        </div>
+        <div class="faq-a">
+          <p>VoiceHealth 的核心模型在超过 50 万条临床语音数据上训练，整体准确率达到 95% 以上。但准确率受多种因素影响，包括录音环境噪音、麦克风质量、被测者配合度等。我们建议在安静环境下使用专业麦克风采集，并将结果作为辅助参考而非唯一诊断依据。</p>
+        </div>
+      </div>
+
+      <div class="faq">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span>如何处理大批量的历史录音分析需求</span>
+          <span class="arrow">&#9660;</span>
+        </div>
+        <div class="faq-a">
+          <p>使用 <code>POST /analysis/batch</code> 端点提交批量任务，Pro 方案单次最多 100 个样本，Enterprise 方案无限制。批量任务支持异步回调和进度查询。如有超大批量需求 (10万+)，请联系我们的技术团队获取专属导入方案。</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="index.html">首页</a>
+    <a href="features.html">功能</a>
+    <a href="cases.html">案例</a>
+    <a href="api.html">API文档</a>
+    <a href="pricing.html">定价</a>
+    <a href="quickstart.html">快速开始</a>
+    <a href="https://github.com/VoiceHealth — ./voicehealth">GitHub</a>
+    <a href="https://mokangmedical.github.io/opc-homepage/">VoiceHealth — .</a>
+  </div>
+  <p>&copy; 2025 VoiceHealth — .. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

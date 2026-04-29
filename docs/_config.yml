@@ -1,0 +1,39 @@
+# VoiceHealth GitHub Pages 配置
+# 由于我们使用纯静态 HTML，禁用 Jekyll 构建
+theme: null
+
+# 不包含任何非 docs 目录的文件
+include: []
+
+# 排除不需要的文件
+exclude:
+  - node_modules
+  - vendor
+  - Gemfile
+  - Gemfile.lock
+  - "*.py"
+  - "*.pyc"
+  - __pycache__
+  - venv
+  - requirements.txt
+  - scripts
+  - src
+  - "*.sh"
+  - "*.yml"
+  - "!_config.yml"
+  - CNAME
+
+# 禁用 Jekyll 插件
+plugins: []
+
+# 静态文件处理
+keep_files:
+  - "*.js"
+  - "*.css"
+  - "*.html"
+  - "*.json"
+  - "*.png"
+  - "*.jpg"
+  - "*.svg"
+  - "*.ico"
+# Updated Mon Apr 27 02:20:41 PM CST 2026

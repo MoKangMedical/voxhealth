@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  voicehealth:
+    build: .
+    ports:
+      - "8100:8100"
+    environment:
+      - VOICEHEALTH_HOST=0.0.0.0
+      - VOICEHEALTH_PORT=8100
+      - MIMO_API_KEY=${MIMO_API_KEY:-}
+      - MIMO_BASE_URL=${MIMO_BASE_URL:-https://api.xiaomimimo.com/v1}
+    volumes:
+      - voicehealth-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  voicehealth-data:
