@@ -41,8 +41,9 @@ app.add_middleware(
 # Register v1 API router
 app.include_router(v1_router)
 
-# Frontend directory
+# Frontend directories
 FRONTEND_DIR = Path(__file__).parent.parent.parent / "frontend"
+DOCS_DIR = Path(__file__).parent.parent.parent / "docs"
 extractor = FeatureExtractor(sr=16000)
 detector = DiseaseDetector()
 
@@ -51,19 +52,14 @@ detector = DiseaseDetector()
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
+    # Serve production frontend (docs/) first, fallback to legacy (frontend/)
+    prod_path = DOCS_DIR / "index.html"
+    if prod_path.exists():
+        return HTMLResponse(content=prod_path.read_text(encoding="utf-8"))
     index_path = FRONTEND_DIR / "index.html"
     if index_path.exists():
         return HTMLResponse(content=index_path.read_text(encoding="utf-8"))
     return HTMLResponse(content="<h1>VoiceHealth API v0.3 Running</h1>")
-
-
-@app.get("/test", response_class=HTMLResponse)
-async def test_page():
-    """API测试页面"""
-    test_path = FRONTEND_DIR / "test.html"
-    if test_path.exists():
-        return HTMLResponse(content=test_path.read_text(encoding="utf-8"))
-    return HTMLResponse(content="<h1>Test page not found</h1>")
 
 
 @app.get("/api/health")
@@ -103,7 +99,7 @@ async def diseases_compat():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("VOXHEALTH_PORT", "8100"))
-    host = os.getenv("VOXHEALTH_HOST", "0.0.0.0")
+    port = int(os.getenv("VOICEHEALTH_PORT", "8100"))
+    host = os.getenv("VOICEHEALTH_HOST", "0.0.0.0")
     print(f"[VoiceHealth] Starting on http://{host}:{port}")
     uvicorn.run(app, host=host, port=port, log_level="info")

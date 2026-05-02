@@ -12,7 +12,7 @@ dist/
 build/
 
 # Database
-data/voicehealth.db
+data/voxhealth.db
 data/*.db
 
 # IDE
@@ -35,7 +35,4 @@ Thumbs.db
 *.ogg
 *.webm
 !data/examples/
-data/voicehealth.db*
-.env
-.env.local
-.env.production
+data/voxhealth.db*
